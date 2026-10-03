@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="tr" data-composition-variables='[
+  {"id":"cocuk","type":"string","label":"Çocuğun adı (büyük harf)","default":"ELA"},
+  {"id":"cocuk_iyelik","type":"string","label":"Ad + iyelik eki (büyük harf)","default":"ELA&#39;NIN"},
+  {"id":"marka","type":"string","label":"Marka","default":"Boyama Kitabım"}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/SplitText.min.js"></script>
+    <script src="vendor/DrawSVGPlugin.min.js"></script>
+    <script src="assets/art.js"></script>
+    <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      /* crayon box: ink #121016 · paper #fffaf0 · red #e94f37 · yellow #f6c445 · blue #3f88c5 · green #44bba4 · pink #f49cbb */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #121016; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #121016; color: #fffaf0; }
+      .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.045em; line-height: 0.88; font-kerning: none; }
+      .mono { font-family: "JetBrains Mono", monospace; letter-spacing: 0.12em; }
+      .sec { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+      #pc { position: absolute; inset: 0; }
+      /* kinetic */
+      #k { background-color: #f6c445; }
+      .row { position: absolute; left: 0; white-space: nowrap; font-size: 210px; color: rgba(18,16,22,0); -webkit-text-stroke: 4px #121016; }
+      #kw { position: absolute; left: 0; right: 0; top: 870px; text-align: center; font-size: 200px; color: #fffaf0; -webkit-text-stroke: 14px #121016; paint-order: stroke fill; }
+      /* draw */
+      #d { background-color: #fffaf0; color: #121016; }
+      #kid { position: absolute; left: 160px; top: 520px; }
+      .dt { position: absolute; left: 0; right: 0; text-align: center; font-size: 140px; }
+      #dt1 { top: 230px; } #dt2 { top: 1440px; color: #e94f37; }
+      /* 3d book */
+      #bk { background-color: #3f88c5; }
+      #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+      .bt { position: absolute; left: 0; right: 0; text-align: center; font-size: 150px; color: #fffaf0; -webkit-text-stroke: 14px #121016; paint-order: stroke fill; }
+      #bt1 { top: 230px; } #bt2 { top: 1440px; color: #f6c445; }
+      #cta { position: absolute; left: 0; right: 0; top: 1380px; text-align: center; opacity: 0; }
+      #cta .m { font-size: 60px; letter-spacing: -0.03em; }
+      #cta .s { margin-top: 18px; font-size: 30px; color: #f6c445; }
+      .brk { position: absolute; width: 54px; height: 54px; border: 0 solid currentColor; z-index: 10; }
+      #brks { position: absolute; inset: 0; color: #fffaf0; z-index: 10; pointer-events: none; }
+      #b1 { left: 56px; top: 150px; border-left-width: 5px; border-top-width: 5px; } #b2 { right: 56px; top: 150px; border-right-width: 5px; border-top-width: 5px; }
+      #b3 { left: 56px; bottom: 300px; border-left-width: 5px; border-bottom-width: 5px; } #b4 { right: 56px; bottom: 300px; border-right-width: 5px; border-bottom-width: 5px; }
+      #slices { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+      .sl { position: absolute; left: 0; width: 1080px; transform-origin: left center; transform: scaleX(0); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="boyaviral" data-start="0" data-duration="15" data-width="1080" data-height="1920">
+      <canvas id="pc" width="1080" height="1920"></canvas>
+      <div id="k" class="sec" style="opacity:0"><div id="rows"></div><div id="kw" class="big">ELA'NIN</div></div>
+      <div id="d" class="sec" style="opacity:0">
+        <div class="dt big" id="dt1">fotoğrafından</div>
+        <svg id="kid" width="760" height="830" viewBox="-230 -150 460 502"></svg>
+        <div class="dt big" id="dt2">sayfaya.</div>
+      </div>
+      <div id="bk" class="sec" style="opacity:0"><canvas id="gl" width="1080" height="1920"></canvas>
+        <div class="bt big" id="bt1">her sayfada</div><div class="bt big" id="bt2">o var.</div></div>
+      <div id="cta"><div class="m big" id="ctaM">Boyama Kitabım</div><div class="s mono">FOTOĞRAFINI YÜKLE · KİTABI KAPINA GELSİN</div></div>
+      <div id="brks"><div class="brk" id="b1"></div><div class="brk" id="b2"></div><div class="brk" id="b3"></div><div class="brk" id="b4"></div></div>
+      <div id="slices"></div>
+      <audio id="snd" src="assets/audio/boyaviral.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      gsap.registerPlugin(SplitText, DrawSVGPlugin);
+      const V = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+      const AD = (V.cocuk || "ELA").toLocaleUpperCase("tr-TR"), ADI = (V.cocuk_iyelik || "ELA'NIN").toLocaleUpperCase("tr-TR"), MARKA = V.marka || "Boyama Kitabım";
+      const hash = (n, s = 1) => { const x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+      const B = 0.5, LOOP = 15, clamp = (v) => Math.max(0, Math.min(1, v));
+      const eo = gsap.parseEase("expo.out"), pio = gsap.parseEase("power3.inOut"), pin = gsap.parseEase("power3.in");
+      const CRAYON = ["#e94f37", "#f6c445", "#3f88c5", "#44bba4", "#f49cbb", "#fffaf0"];
+      document.getElementById("ctaM").textContent = MARKA;
+
+      // ---------- crayon particles: vortex with whole revolutions per loop (t=15 ≡ t=0) ----------
+      const ctx = document.getElementById("pc").getContext("2d");
+      const N = 2600, P = [];
+      for (let i = 0; i < N; i++) P.push({ a: hash(i, 1) * Math.PI * 2, r: 120 + Math.pow(hash(i, 2), 0.7) * 470, m: 2 + Math.floor(hash(i, 3) * 3), d: hash(i, 4),
+        c: CRAYON[Math.floor(hash(i, 5) * CRAYON.length)], s: 4 + Math.floor(hash(i, 7) * 3) });
+      const vortex = (p, t) => { const ang = p.a + (p.m * Math.PI * 2 * t) / LOOP, br = 1 + 0.06 * Math.sin((Math.PI * 2 * 3 * t) / LOOP + p.a * 3);
+        return [540 + Math.cos(ang) * p.r * br, 960 + Math.sin(ang) * p.r * br * 1.25]; };
+      function sample(lines) {
+        const off = document.createElement("canvas"); off.width = 1080; off.height = 1920; const o = off.getContext("2d");
+        o.fillStyle = "#fff"; o.textAlign = "center"; o.textBaseline = "middle";
+        lines.forEach(([txt, size, y]) => { o.font = "800 " + size + 'px "Bricolage Grotesque"'; const w = o.measureText(txt).width;
+          if (w > 960) o.font = "800 " + Math.floor(size * 960 / w) + 'px "Bricolage Grotesque"'; o.fillText(txt, 540, y); });
+        const d = o.getImageData(0, 0, 1080, 1920).data, pts = [];
+        for (let y = 0; y < 1920; y += 6) for (let x = 0; x < 1080; x += 6) if (d[(y * 1080 + x) * 4 + 3] > 128) pts.push([x, y]);
+        return P.map((p, i) => pts[(i * 7919) % pts.length]);
+      }
+      let TA, TB;
+      function drawParticles(t) {
+        ctx.clearRect(0, 0, 1080, 1920);
+        if (t >= 2.0 && t < 9.0) return;
+        for (let i = 0; i < N; i++) {
+          const p = P[i], v = vortex(p, t); let x = v[0], y = v[1];
+          if (t < 2.0) {
+            const k = eo(clamp((t - 0.2 - p.d * 0.25) / 0.7)), g = TA[i];
+            x += (g[0] - x) * k; y += (g[1] - y) * k;
+            const e = pin(clamp((t - 1.72) / 0.28));
+            if (e > 0) { const dx = g[0] - 540, dy = g[1] - 960, l = Math.hypot(dx, dy) || 1; x += dx / l * e * 900; y += dy / l * e * 900; }
+            else if (k > 0.98) x += Math.sin(t * 14 + i) * 1.2;
+          } else {
+            const g = TB[i], kin = eo(clamp((t - 9.0 - p.d * 0.35) / 0.8)), kout = pio(clamp((t - 11.6 - p.d * 0.6) / 1.4)), k = kin * (1 - kout);
+            x += (g[0] - x) * k; y += (g[1] - y) * k;
+            if (k > 0.98) { x += Math.sin(t * 12 + i * 0.7) * 1.4; y += Math.cos(t * 10 + i) * 1.0; }
+          }
+          ctx.fillStyle = p.c; ctx.fillRect(x, y, p.s, p.s);
+        }
+      }
+
+      // ---------- three.js flip-book ----------
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("gl"), antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(1080, 1920, false); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.shadowMap.enabled = true;
+      const scene = new THREE.Scene(); scene.background = new THREE.Color(0x3f88c5);
+      const cam = new THREE.PerspectiveCamera(38, 1080 / 1920, 0.1, 100);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x2a4a6a, 1.4));
+      const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-4, 8, 6); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); scene.add(key);
+      // page texture: a small coloring page (outlined kid) drawn on a canvas
+      const pg = document.createElement("canvas"); pg.width = 512; pg.height = 700; const g2 = pg.getContext("2d");
+      g2.fillStyle = "#fffaf0"; g2.fillRect(0, 0, 512, 700); g2.strokeStyle = "#121016"; g2.lineWidth = 9; g2.lineJoin = "round";
+      g2.beginPath(); g2.arc(256, 260, 110, 0, Math.PI * 2); g2.stroke();
+      g2.beginPath(); g2.arc(140, 220, 46, 0, Math.PI * 2); g2.stroke(); g2.beginPath(); g2.arc(372, 220, 46, 0, Math.PI * 2); g2.stroke();
+      g2.fillStyle = "#121016"; g2.beginPath(); g2.arc(216, 265, 11, 0, 7); g2.fill(); g2.beginPath(); g2.arc(296, 265, 11, 0, 7); g2.fill();
+      g2.beginPath(); g2.arc(256, 300, 40, 0.2, Math.PI - 0.2); g2.stroke();
+      g2.beginPath(); g2.moveTo(150, 640); g2.lineTo(170, 430); g2.quadraticCurveTo(256, 390, 342, 430); g2.lineTo(362, 640); g2.stroke();
+      const pageTex = new THREE.CanvasTexture(pg); pageTex.colorSpace = THREE.SRGBColorSpace;
+      const PW = 3.0, PH = 4.1, book = new THREE.Group(); scene.add(book);
+      const cover = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, 0.12), new THREE.MeshStandardMaterial({ color: 0xe94f37, roughness: 0.7 }));
+      cover.position.set(PW / 2, 0, -0.08); cover.castShadow = true; cover.receiveShadow = true; book.add(cover);
+      const pages = [];
+      for (let i = 0; i < 16; i++) {
+        const geo = new THREE.PlaneGeometry(PW * 0.97, PH * 0.96, 12, 1); geo.translate(PW * 0.97 / 2, 0, 0);
+        const mat = new THREE.MeshStandardMaterial({ map: pageTex, side: THREE.DoubleSide, roughness: 0.9, color: i % 3 === 0 ? 0xffffff : 0xfdf6e8 });
+        const m = new THREE.Mesh(geo, mat); m.position.z = 0.002 * i; m.castShadow = true; book.add(m); pages.push({ m, base: Float32Array.from(geo.attributes.position.array) });
+      }
+      function renderBook(t) {
+        const u = t - 6.5;
+        pages.forEach(({ m, base }, i) => {
+          const k = pio(clamp((u - i * 0.13) / 0.55)), ang = -k * Math.PI * 0.98;
+          m.rotation.y = ang; m.position.z = 0.002 * i + Math.sin(k * Math.PI) * 0.15;
+          const p = m.geometry.attributes.position;                       // paper bends while it turns
+          for (let j = 0; j < p.count; j++) { const x = base[j * 3]; p.setZ(j, Math.sin(k * Math.PI) * 0.35 * Math.pow(x / PW, 1.6)); }
+          p.needsUpdate = true;
+        });
+        book.rotation.set(-0.35 + Math.sin(u * 1.2) * 0.05, 0.45 - u * 0.12, 0.08);
+        book.position.set(-0.4, 0.1 + Math.sin(u * 2) * 0.06, 0);
+        cam.position.set(0, 0.2, 15.5 - u * 0.6); cam.lookAt(0, 0.1, 0);
+        renderer.render(scene, cam);
+      }
+
+      document.fonts.ready.then(() => {
+        TA = sample([[AD, 460, 960]]);
+        TB = sample([["KAHRAMAN", 230, 860], ["O.", 330, 1100]]);
+        document.getElementById("kw").textContent = ADI;
+        const rows = document.getElementById("rows");
+        for (let r = 0; r < 9; r++) { if (r === 4) continue; const d = document.createElement("div"); d.className = "row big"; d.id = "kr" + r; d.style.top = (r * 215 - 40) + "px"; d.textContent = "BOYA · BOYA · BOYA · BOYA · BOYA ·"; rows.appendChild(d); }
+        const kid = document.getElementById("kid");
+        kid.innerHTML = '<g transform="translate(0 0)">' + ART.kid("kd") + "</g>";
+        const strokes = kid.querySelectorAll("[stroke]"), regs = kid.querySelectorAll(".rg");
+        const sl = document.getElementById("slices");
+        for (let k = 0; k < 7; k++) { const d = document.createElement("div"); d.className = "sl"; d.id = "s" + k; d.style.top = (k * 280 + 30) + "px"; d.style.height = (50 + hash(k, 9) * 110) + "px"; sl.appendChild(d); }
+
+        const tl = gsap.timeline({ paused: true });
+        const words = [ADI, "KENDİ", "BOYAMA", "KİTABI."], wordEl = document.getElementById("kw");
+        tl.eventCallback("onUpdate", () => {
+          const t = tl.time(); drawParticles(t); if (t >= 6.4 && t < 9.1) renderBook(t);
+          const wi = Math.min(3, Math.max(0, Math.floor((t - 2.0) / B))); if (wordEl.textContent !== words[wi]) wordEl.textContent = words[wi];
+        });
+        window.addEventListener("hf-seek", (e) => { const t = e.detail.time; drawParticles(t); if (t >= 6.4 && t < 9.1) renderBook(t); });
+
+        // cuts on the beat with crayon slices; brackets retint for the light section
+        [[2.0, "#k"], [4.0, "#d"], [6.5, "#bk"], [9.0, null]].forEach(([t, show], n) => {
+          const prev = ["#k", "#d", "#bk"][n - 1];
+          if (show) tl.set(show, { opacity: 1 }, t); if (prev) tl.set(prev, { opacity: 0 }, t);
+          tl.set("#brks", { color: show === "#d" || show === "#k" ? "#121016" : "#fffaf0" }, t);
+          for (let k = 0; k < 7; k++) {
+            const id = "#s" + k;
+            tl.set(id, { backgroundColor: CRAYON[(n + k) % 5], transformOrigin: k % 2 ? "right center" : "left center" }, t - 0.1);
+            tl.fromTo(id, { scaleX: 0 }, { scaleX: 1, duration: 0.06, ease: "power4.in", immediateRender: false }, t - 0.1 + k * 0.006);
+            tl.to(id, { scaleX: 0, transformOrigin: k % 2 ? "left center" : "right center", duration: 0.09, ease: "power4.out" }, t + 0.02 + k * 0.008);
+          }
+        });
+        tl.fromTo(".brk", { scale: 1 }, { scale: 1.12, duration: B / 2, ease: "power2.out", yoyo: true, repeat: 59 }, 0);
+
+        // kinetic: rows drift, the word punches on every beat
+        for (let r = 0; r < 9; r++) if (r !== 4) tl.fromTo("#kr" + r, { x: r % 2 ? -900 : 0 }, { x: r % 2 ? 0 : -900, duration: 2.0, ease: "none" }, 2.0);
+        for (let b = 0; b < 4; b++) tl.fromTo("#kw", { scale: 1.25, skewX: b % 2 ? 8 : -8 }, { scale: 1, skewX: 0, duration: 0.3, ease: "expo.out", immediateRender: false }, 2.0 + b * B);
+
+        // the page draws itself, then floods with colour on the beat
+        tl.fromTo(strokes, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.55, ease: "power2.inOut", stagger: 0.03 }, 4.05);
+        regs.forEach((r, k) => tl.fromTo(r, { fill: "#fffaf0" }, { fill: r.getAttribute("data-c"), duration: 0.12, ease: "power2.out", immediateRender: false }, 5.0 + Math.floor(k / 3) * (B / 2)));
+        tl.fromTo("#kid", { scale: 1, transformOrigin: "50% 60%" }, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 5, ease: "power2.out" }, 5.0);
+        tl.fromTo("#dt1", { opacity: 0, scale: 1.6, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 4.05);
+        tl.fromTo("#dt2", { opacity: 0, scale: 1.6, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 5.0);
+
+        // flip-book words
+        tl.fromTo("#bt1", { opacity: 0, scale: 1.6, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 6.55);
+        tl.fromTo("#bt2", { opacity: 0, scale: 1.6, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 7.5);
+
+        // CTA while the particles fall back into the vortex (gone again before the loop point)
+        tl.fromTo("#cta", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 12.4);
+        tl.to("#cta", { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" }, 14.2);
+
+        drawParticles(0);
+        window.__timelines["boyaviral"] = tl;
+      });
+    </script>
+  </body>
+</html>

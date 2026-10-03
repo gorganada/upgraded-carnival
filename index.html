@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Çanakkale 1915</title>
 <style>
-  :root { --bg:#06070b; --fg:#f4efe6; --red:#e30a17; }
+  :root { --bg:#06070b; --fg:#f4efe6; --red:#e30a17; color-scheme:dark; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow:hidden; }
   #wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
@@ -559,13 +559,13 @@ function render() {
 }
 function loop(now) {
   if (!running) return;
-  const dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+  const dt = clamp((now - last) / 1000 || 0, 0, .05); last = now;
   step(dt); render();
   if (t >= END) { running = false; document.getElementById('end').classList.remove('hidden'); return; }
   requestAnimationFrame(loop);
 }
 function play() {
-  initAudio(); reset(); running = true; last = performance.now();
+  resize(); try { initAudio(); } catch (e) {} reset(); running = true; last = performance.now();
   document.getElementById('start').classList.add('hidden'); document.getElementById('end').classList.add('hidden');
   requestAnimationFrame(loop);
 }

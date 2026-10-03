@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/SplitText.min.js"></script>
+    <script src="vendor/MorphSVGPlugin.min.js"></script>
+    <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      /* ink #08080a · cream #f2ede4 · signal orange #ff4a1c · cobalt #1b2cc1 */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #08080a; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #08080a; color: #f2ede4; }
+      .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.045em; line-height: 0.88; font-kerning: none; }
+      .mono { font-family: "JetBrains Mono", monospace; letter-spacing: 0.12em; }
+      .sec { position: absolute; inset: 0; overflow: hidden; }
+      #pc { position: absolute; inset: 0; }
+      #k { background-color: #ff4a1c; opacity: 0; }
+      .row { position: absolute; left: 0; white-space: nowrap; font-size: 210px; color: rgba(8,8,10,0); -webkit-text-stroke: 4px #08080a; }
+      #kw { position: absolute; left: 0; right: 0; top: 870px; text-align: center; font-size: 186px; color: #f2ede4; -webkit-text-stroke: 12px #08080a; paint-order: stroke fill; }
+      #tn { opacity: 0; }
+      #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+      .tw { position: absolute; left: 0; right: 0; text-align: center; font-size: 150px; color: #f2ede4; -webkit-text-stroke: 16px #08080a; paint-order: stroke fill; }
+      #mo { background-color: #1b2cc1; opacity: 0; }
+      #mo svg { position: absolute; left: 190px; top: 610px; }
+      #mt1 { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-size: 140px; }
+      #mt2 { position: absolute; left: 0; right: 0; top: 1400px; text-align: center; font-size: 140px; }
+      #cap { position: absolute; left: 0; right: 0; top: 1320px; text-align: center; font-size: 34px; color: #ff4a1c; opacity: 0; }
+      .brk { position: absolute; width: 54px; height: 54px; border: 0 solid #f2ede4; opacity: 0.85; z-index: 10; }
+      #b1 { left: 56px; top: 150px; border-left-width: 5px; border-top-width: 5px; } #b2 { right: 56px; top: 150px; border-right-width: 5px; border-top-width: 5px; }
+      #b3 { left: 56px; bottom: 300px; border-left-width: 5px; border-bottom-width: 5px; } #b4 { right: 56px; bottom: 300px; border-right-width: 5px; border-bottom-width: 5px; }
+      #slices { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+      .sl { position: absolute; left: 0; width: 1080px; transform-origin: left center; transform: scaleX(0); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="hipnoz" data-start="0" data-duration="15" data-width="1080" data-height="1920">
+      <canvas id="pc" width="1080" height="1920"></canvas>
+      <div id="k" class="sec"><div id="rows"></div><div id="kw" class="big">KAYDIRMA.</div></div>
+      <div id="tn" class="sec"><canvas id="gl" width="1080" height="1920"></canvas>
+        <div class="tw big" id="w1" style="top:640px">Beynin</div><div class="tw big" id="w2" style="top:790px">şu an</div>
+        <div class="tw big" id="w3" style="top:940px;color:#ff4a1c">bir örüntü</div><div class="tw big" id="w4" style="top:1090px">yakaladı.</div></div>
+      <div id="mo" class="sec">
+        <div id="mt1" class="big">Ve bitmesini</div>
+        <svg width="700" height="700" viewBox="0 0 700 700">
+          <path id="sh" d="M350 70 C 505 70, 630 195, 630 350 C 630 505, 505 630, 350 630 C 195 630, 70 505, 70 350 C 70 195, 195 70, 350 70 Z" fill="#f2ede4"/>
+          <path id="cir" d="M350 70 C 505 70, 630 195, 630 350 C 630 505, 505 630, 350 630 C 195 630, 70 505, 70 350 C 70 195, 195 70, 350 70 Z" fill="none"/>
+          <path id="squ" d="M100 100 L 600 100 L 600 600 L 100 600 Z" fill="none"/>
+          <path id="tri" d="M350 60 L 640 600 L 60 600 Z" fill="none"/>
+          <path id="brk" d="M350 60 L 420 300 L 660 250 L 470 400 L 600 640 L 350 480 L 120 650 L 230 410 L 40 260 L 280 290 Z" fill="none"/>
+        </svg>
+        <div id="mt2" class="big">bekliyor.</div>
+      </div>
+      <div id="cap" class="mono">(EVET, TEKRAR İZLEYECEKSİN)</div>
+      <div class="brk" id="b1"></div><div class="brk" id="b2"></div><div class="brk" id="b3"></div><div class="brk" id="b4"></div>
+      <div id="slices"></div>
+      <audio id="snd" src="assets/audio/hipnoz.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      gsap.registerPlugin(SplitText, MorphSVGPlugin);
+      const hash = (n, s = 1) => { const x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+      const B = 0.5, LOOP = 15;
+      const clamp = (v) => Math.max(0, Math.min(1, v));
+      const eo = gsap.parseEase("expo.out"), pio = gsap.parseEase("power3.inOut"), pin = gsap.parseEase("power3.in");
+
+      // ---------- particles: a vortex whose state at t=15 equals t=0 (whole revolutions only) ----------
+      const pc = document.getElementById("pc"), ctx = pc.getContext("2d");
+      const N = 2600, P = [];
+      for (let i = 0; i < N; i++) P.push({ a: hash(i, 1) * Math.PI * 2, r: 120 + Math.pow(hash(i, 2), 0.7) * 470, m: 2 + Math.floor(hash(i, 3) * 3), d: hash(i, 4),
+        c: hash(i, 5) < 0.16 ? "#ff4a1c" : (hash(i, 6) < 0.1 ? "#6f7cff" : "#f2ede4"), s: 3 + Math.floor(hash(i, 7) * 3) });
+      function vortex(p, t) {
+        const ang = p.a + (p.m * Math.PI * 2 * t) / LOOP, br = 1 + 0.06 * Math.sin((Math.PI * 2 * 3 * t) / LOOP + p.a * 3);
+        return [540 + Math.cos(ang) * p.r * br, 960 + Math.sin(ang) * p.r * br * 1.25];
+      }
+      function sample(lines) {
+        const off = document.createElement("canvas"); off.width = 1080; off.height = 1920; const o = off.getContext("2d");
+        o.fillStyle = "#fff"; o.textAlign = "center"; o.textBaseline = "middle";
+        lines.forEach(([txt, size, y]) => { o.font = '800 ' + size + 'px "Bricolage Grotesque"'; o.fillText(txt, 540, y); });
+        const d = o.getImageData(0, 0, 1080, 1920).data, pts = [];
+        for (let y = 0; y < 1920; y += 6) for (let x = 0; x < 1080; x += 6) if (d[(y * 1080 + x) * 4 + 3] > 128) pts.push([x, y]);
+        return P.map((p, i) => pts[(i * 7919) % pts.length]);
+      }
+      let T_DUR, T_HALA;
+      function drawParticles(t) {
+        ctx.clearRect(0, 0, 1080, 1920);
+        const show = t < 2.0 || t >= 9.0;
+        if (!show) return;
+        for (let i = 0; i < N; i++) {
+          const p = P[i], v = vortex(p, t); let x = v[0], y = v[1];
+          if (t < 2.0) {                                   // DUR.
+            const k = eo(clamp((t - 0.2 - p.d * 0.25) / 0.7)), g = T_DUR[i];
+            x += (g[0] - x) * k; y += (g[1] - y) * k;
+            const e = pin(clamp((t - 1.72) / 0.28));
+            if (e > 0) { const dx = g[0] - 540, dy = g[1] - 960, l = Math.hypot(dx, dy) || 1; x += dx / l * e * 900; y += dy / l * e * 900; }
+            if (k > 0.98 && e === 0) { x += Math.sin(t * 14 + i) * 1.2; }
+          } else {                                         // HÂLÂ İZLİYORSUN. and back into the vortex
+            const g = T_HALA[i];
+            const kin = eo(clamp((t - 9.0 - p.d * 0.35) / 0.8));
+            const kout = pio(clamp((t - 11.8 - p.d * 0.6) / 1.4));
+            const k = kin * (1 - kout);
+            x += (g[0] - x) * k; y += (g[1] - y) * k;
+            if (k > 0.98) { x += Math.sin(t * 12 + i * 0.7) * 1.4; y += Math.cos(t * 10 + i) * 1.0; }
+          }
+          ctx.fillStyle = p.c; ctx.fillRect(x, y, p.s, p.s);
+        }
+      }
+
+      // ---------- three.js tunnel ----------
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("gl"), antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(1080, 1920, false); renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene(); scene.background = new THREE.Color(0x08080a); scene.fog = new THREE.Fog(0x08080a, 6, 46);
+      const cam = new THREE.PerspectiveCamera(70, 1080 / 1920, 0.1, 100);
+      const RINGS = [], COLS = [0xf2ede4, 0xff4a1c, 0xf2ede4, 0x1b2cc1];
+      for (let i = 0; i < 44; i++) {
+        const m = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.06 + (i % 4 === 1 ? 0.07 : 0), 8, 6 + (i % 3) * 0), new THREE.MeshBasicMaterial({ color: COLS[i % 4] }));
+        m.position.z = -i * 1.4; RINGS.push(m); scene.add(m);
+      }
+      function renderTunnel(t) {
+        const u = t - 4.5;
+        cam.position.set(Math.sin(u * 1.3) * 0.5, Math.cos(u * 1.1) * 0.5, 4 - u * 9);
+        cam.lookAt(0, 0, cam.position.z - 10); cam.rotation.z = u * 0.6;
+        RINGS.forEach((r, i) => { r.rotation.z = i * 0.21 + u * (i % 2 ? 0.8 : -0.8); r.scale.setScalar(1 + 0.08 * Math.sin(u * 8 + i)); });
+        renderer.render(scene, cam);
+      }
+
+      document.fonts.ready.then(() => {
+        T_DUR = sample([["DUR.", 430, 960]]);
+        T_HALA = sample([["HÂLÂ", 330, 800], ["İZLİYORSUN.", 158, 1060]]);
+        // kinetic rows
+        const rows = document.getElementById("rows");
+        for (let r = 0; r < 9; r++) { if (r === 4) continue; const d = document.createElement("div"); d.className = "row big"; d.id = "kr" + r; d.style.top = (r * 215 - 40) + "px"; d.textContent = "KAYDIRMA · KAYDIRMA · KAYDIRMA ·"; rows.appendChild(d); }
+        const sl = document.getElementById("slices");
+        for (let k = 0; k < 7; k++) { const d = document.createElement("div"); d.className = "sl"; d.id = "s" + k; d.style.top = (k * 280 + 30) + "px"; d.style.height = (50 + hash(k, 9) * 110) + "px"; sl.appendChild(d); }
+
+        const tl = gsap.timeline({ paused: true });
+        tl.eventCallback("onUpdate", () => { const t = tl.time(); drawParticles(t); if (t >= 4.4 && t < 7.1) renderTunnel(t); });
+        window.addEventListener("hf-seek", (e) => { const t = e.detail.time; drawParticles(t); if (t >= 4.4 && t < 7.1) renderTunnel(t); });
+
+        // section cuts on the beat with colour slices
+        [[2.0, "#k"], [4.5, "#tn"], [7.0, "#mo"], [9.0, null]].forEach(([t, show], n) => {
+          const prev = ["#k", "#tn", "#mo"][n - 1];
+          if (show) tl.set(show, { opacity: 1 }, t);
+          if (prev) tl.set(prev, { opacity: 0 }, t);
+          for (let k = 0; k < 7; k++) {
+            const id = "#s" + k, c = ["#ff4a1c", "#f2ede4", "#1b2cc1", "#08080a"][(n + k) % 4];
+            tl.set(id, { backgroundColor: c, transformOrigin: k % 2 ? "right center" : "left center" }, t - 0.1);
+            tl.fromTo(id, { scaleX: 0 }, { scaleX: 1, duration: 0.06, ease: "power4.in", immediateRender: false }, t - 0.1 + k * 0.006);
+            tl.to(id, { scaleX: 0, transformOrigin: k % 2 ? "left center" : "right center", duration: 0.09, ease: "power4.out" }, t + 0.02 + k * 0.008);
+          }
+        });
+        // corner brackets breathe on the beat (ambient layer)
+        tl.fromTo(".brk", { scale: 1 }, { scale: 1.12, duration: B / 2, ease: "power2.out", yoyo: true, repeat: 59 }, 0);
+
+        // KAYDIRMA: rows slide in opposite directions, the word punches on every beat
+        for (let r = 0; r < 9; r++) if (r !== 4) tl.fromTo("#kr" + r, { x: r % 2 ? -900 : 0 }, { x: r % 2 ? 0 : -900, duration: 2.5, ease: "none" }, 2.0);
+        for (let b = 0; b < 5; b++) tl.fromTo("#kw", { scale: 1.22, skewX: b % 2 ? 8 : -8 }, { scale: 1, skewX: 0, duration: 0.3, ease: "expo.out", immediateRender: false }, 2.0 + b * B);
+
+        // tunnel words, one per beat
+        ["#w1", "#w2", "#w3", "#w4"].forEach((id, k) => {
+          tl.fromTo(id, { opacity: 0, scale: 2.2, filter: "blur(18px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.32, ease: "expo.out" }, 4.5 + k * B);
+        });
+
+        // pattern: circle → square → triangle → circle … and the brain expects square next. It breaks.
+        const seq = ["#squ", "#tri", "#cir", "#brk"];
+        tl.fromTo("#sh", { scale: 0.2, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 7.0);
+        seq.forEach((s, k) => tl.to("#sh", { morphSVG: { shape: s, type: "rotational" }, rotation: (k + 1) * 60, fill: k === 3 ? "#ff4a1c" : "#f2ede4", duration: 0.24, ease: "power4.inOut" }, 7.5 + k * B - (k === 3 ? 0.25 : 0)));
+        tl.to("#sh", { x: 18, duration: 0.04, yoyo: true, repeat: 5, ease: "none" }, 8.3);
+        tl.fromTo("#mt1", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.3, ease: "expo.out" }, 7.0);
+        tl.fromTo("#mt2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, ease: "expo.out" }, 8.0);
+
+        // caption under the particle sentence
+        tl.fromTo("#cap", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 10.3);
+        tl.to("#cap", { opacity: 0, duration: 0.5 }, 11.9);
+
+        drawParticles(0);
+        window.__timelines["hipnoz"] = tl;
+      });
+    </script>
+  </body>
+</html>

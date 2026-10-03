@@ -29,7 +29,7 @@
 <button id="mute" title="Ses">🔊</button>
 <div class="overlay" id="start">
   <h1>ÇANAKKALE <span>1915</span></h1>
-  <p>Çöp adamlarla 20 saniyede Çanakkale Savaşı — Nusret'ten 18 Mart'a, kara çıkarmasından "Çanakkale geçilmez"e.</p>
+  <p>Çöp adamlarla 40 saniyede Çanakkale Savaşı — Nusret'ten 18 Mart'a, kara çıkarmasından "Çanakkale geçilmez"e.</p>
   <button class="play" id="playBtn">▶ İzle</button>
 </div>
 <div class="overlay hidden" id="end">
@@ -38,7 +38,7 @@
 </div>
 <script>
 (() => {
-const W = 1280, H = 720, END = 21.5;
+const W = 1280, H = 720, END = 38.5;
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let scale = 1;
 function resize() {
@@ -341,7 +341,7 @@ const SEAY = 405, WL = 545, MINES = [850, 630, 410], MINEY = 585;
 
 const scenes = [
 // 1) Nusret lays mines at night
-{ a: 0, b: 3.5, date: '8 Mart 1915', cap: "Nusret mayın gemisi gece gizlice Erenköy koyuna 26 mayın döşüyor.",
+{ a: 0, b: 6, date: '8 Mart 1915', chap: 'Nusret', cap: "Nusret mayın gemisi gece gizlice Erenköy koyuna 26 mayın döşüyor.",
   update(T, dt) { const nx = 1250 - T * 270; smokeFrom(nx - 4, WL - 48, 14, dt, '#2c2f3a');
     MINES.forEach((m, i) => at(T, (1250 - m) / 270, 'drop' + i, () => splash(m + 30, WL, .6))); },
   draw(T) {
@@ -355,15 +355,15 @@ const scenes = [
     sea(WL, WL + 2, sg, T, 'rgba(160,190,255,.25)');
     MINES.forEach((m, i) => { const td = (1250 - m) / 270; if (T > td) mine(m + 30, lerp(WL, MINEY, clamp((T - td) / .5)) + Math.sin(T * 2 + i) * 2, .5); });
     cliff('#07080f', '#131624');
-    const a = fade(T, .2, 3.3, .5);
+    const a = fade(T, .2, 5.5, .5);
     ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = '700 104px Georgia, serif'; ctx.fillStyle = '#f4efe6'; ctx.shadowColor = 'rgba(227,10,23,.6)'; ctx.shadowBlur = 30;
     ctx.fillText('ÇANAKKALE', W / 2, 190); ctx.shadowBlur = 0;
     ctx.font = '700 52px Georgia, serif'; ctx.fillStyle = '#e30a17'; ctx.fillText('— 1915 —', W / 2, 270); ctx.globalAlpha = 1;
   } },
 // 2) 18 March naval battle
-{ a: 3.5, b: 8, date: '18 Mart 1915', cap: 'Tabyalar ateşte! İtilaf zırhlıları mayınlara çarpıyor: Bouvet, Irresistible ve Ocean batıyor.',
-  ships: [{ n: 'Bouvet', x0: 160, hit: 2.2, m: 0, s: 1 }, { n: 'Irresistible', x0: -90, hit: 2.9, m: 1, s: .95 }, { n: 'Ocean', x0: -340, hit: 3.6, m: 2, s: .9 }],
+{ a: 6, b: 13.5, date: '18 Mart 1915', chap: 'Deniz Savaşı', cap: 'Tabyalar ateşte! İtilaf zırhlıları mayınlara çarpıyor: Bouvet, Irresistible ve Ocean batıyor.',
+  ships: [{ n: 'Bouvet', x0: 160, hit: 2.6, m: 0, s: 1 }, { n: 'Irresistible', x0: -90, hit: 3.9, m: 1, s: .95 }, { n: 'Ocean', x0: -340, hit: 5.2, m: 2, s: .9 }],
   shells: [],
   shipX(sh, T) { return lerp(sh.x0, MINES[sh.m], ease(clamp((T - .2) / (sh.hit - .2)))) + Math.max(0, T - sh.hit) * 15; },
   init() { this.shells = []; },
@@ -371,7 +371,7 @@ const scenes = [
     const fire = (k, t0, sx, sy, tx, ty, onHit) => at(T, t0, k, () => { this.shells.push({ t0, dur: .8, x0: sx, y0: sy, x1: tx, y1: ty, h: 140, onHit, k }); muzzle(sx, sy); boom(.35); });
     fire('f1', .4, 1126, 377, 420, WL, null); fire('f2', 1.0, 1191, 375, 700, WL, null);
     fire('seyit', 1.55, 1191, 375, this.shipX(this.ships[2], 2.35) + 20, WL - 30, 'hit');
-    fire('f3', 2.4, 1126, 377, 600, WL, null); fire('f4', 3.1, 1191, 375, 380, WL, null);
+    fire('f3', 2.4, 1126, 377, 600, WL, null); fire('f4', 3.1, 1191, 375, 380, WL, null); fire('f5', 4.4, 1126, 377, 520, WL, null); fire('f6', 5.8, 1191, 375, 300, WL, null);
     for (const sh of this.shells) at(T, sh.t0 + sh.dur, 'land' + sh.k, () => sh.onHit ? explode(sh.x1, sh.y1, .7) : splash(sh.x1, WL, 1.2));
     // fleet fires back at the fort
     [[.7, 0], [1.3, 1], [2.0, 2]].forEach(([t0, i]) => at(T, t0, 'back' + i, () => { const s = this.ships[i]; muzzle(this.shipX(s, t0) + 120 * s.s, WL - 27 * s.s); boom(.4); }));
@@ -399,12 +399,12 @@ const scenes = [
     // Seyit Onbaşı
     const lift = clamp((T - .05) / 1.2);
     stick({ x: 1218, y: 392, s: 1.25, face: -1, hat: 'kabalak', lift: T < 1.4 ? ease(lift) : null, gun: false, col: '#1a1612' });
-    label('Seyit Onbaşı', 1190, 300, { a: fade(T, 0, 2.4), size: 14, bg: 'rgba(227,10,23,.85)' });
+    label('Seyit Onbaşı', 1190, 300, { a: fade(T, .4, 3.4), size: 14, bg: 'rgba(227,10,23,.85)' });
     flag(1255, 250, 26, 18, T, 1, true, 135);
     for (const sh of this.shells) shellArc(sh, T);
   } },
 // 3) 25 April landing
-{ a: 8, b: 12, date: '25 Nisan 1915', cap: "Kara çıkarması! ANZAC birlikleri Arıburnu'na çıkıyor, Mehmetçik siperde bekliyor.",
+{ a: 13.5, b: 20.5, date: '25 Nisan 1915', chap: 'Kara Çıkarması', cap: "Kara çıkarması! ANZAC birlikleri Arıburnu'na çıkıyor, Mehmetçik siperde bekliyor.",
   g: terrain([[0, 600], [330, 556], [440, 545], [540, 520], [660, 470], [780, 420], [880, 360], [980, 312], [1280, 300]]),
   boats: [{ arr: .9, sx: 300 }, { arr: 1.3, sx: 250 }, { arr: 1.7, sx: 330 }],
   init() { this.sol = []; this.boats.forEach((b, bi) => { for (let k = 0; k < 4; k++) { const id = bi * 4 + k;
@@ -448,14 +448,14 @@ const scenes = [
     for (let i = 0; i < 6; i++) { const x = 1035 + i * 36; stick({ x, y: 322, face: -1, hat: 'kabalak', aim: .1, band: '#e30a17' }); }
     ctx.fillStyle = '#9b8457'; for (let x = 1005; x < 1260; x += 22) { roundRect(x, 296, 24, 12, 5); ctx.fill(); roundRect(x + 11, 287, 24, 11, 5); ctx.fill(); }
     flag(1240, 210, 44, 29, T, 1);
-    label('İtilaf (ANZAC)', 470, 450, { a: fade(T, 1, 3.6), size: 15, bg: 'rgba(40,60,90,.85)' });
-    label('Mehmetçik', 1120, 240, { a: fade(T, .5, 3.6), size: 15, bg: 'rgba(227,10,23,.85)' });
+    label('İtilaf (ANZAC)', 470, 450, { a: fade(T, 1, 6.5), size: 15, bg: 'rgba(40,60,90,.85)' });
+    label('Mehmetçik', 1120, 240, { a: fade(T, .7, 6.5), size: 15, bg: 'rgba(227,10,23,.85)' });
   } },
 // 4) Mustafa Kemal and the 57th Regiment
-{ a: 12, b: 16, date: '25 Nisan 1915 · Arıburnu', cap: "Mustafa Kemal'in emriyle 57. Alay süngü hücumuna kalkıyor!",
+{ a: 20.5, b: 28, date: '25 Nisan 1915 · Arıburnu', chap: 'Ölmeyi Emrediyorum', cap: "Mustafa Kemal'in emriyle 57. Alay süngü hücumuna kalkıyor!",
   g: terrain([[0, 540], [300, 528], [520, 495], [700, 440], [860, 380], [1000, 335], [1280, 322]]),
-  init() { this.turks = Array.from({ length: 10 }, (_, i) => ({ i, sx: 1075 + (i % 5) * 44 + (i > 4 ? 22 : 0), st: 1.55 + i * .07, stop: 180 + i * 44, sp: 330 + (i * 17) % 50 }));
-    this.foes = Array.from({ length: 7 }, (_, j) => ({ j, x: 170 + j * 50, fall: [1, 3, 5].includes(j) ? 2.75 + j * .04 : 99, flee: 2.9 + j * .05, shot: -1 })); },
+  init() { this.turks = Array.from({ length: 10 }, (_, i) => ({ i, sx: 1075 + (i % 5) * 44 + (i > 4 ? 22 : 0), st: 3.0 + i * .07, stop: 180 + i * 44, sp: 330 + (i * 17) % 50 }));
+    this.foes = Array.from({ length: 7 }, (_, j) => ({ j, x: 170 + j * 50, fall: [1, 3, 5].includes(j) ? 4.2 + j * .04 : 99, flee: 4.35 + j * .05, shot: -1 })); },
   tPos(t, T) { const d = Math.max(0, T - t.st) * t.sp; const x = Math.max(t.stop, t.sx - d); return { x, y: this.g(x), run: T > t.st && x > t.stop ? d * .08 : null }; },
   fPos(f, T) { const x = T > f.flee && f.fall > 50 ? f.x - (T - f.flee) * 260 : f.x; return { x, y: this.g(x), run: T > f.flee && f.fall > 50 ? (T - f.flee) * 22 : null }; },
   update(T, dt) {
@@ -480,15 +480,15 @@ const scenes = [
     ctx.fillStyle = '#5e5240'; roundRect(kx - 26, ky - 10, 52, 14, 6); ctx.fill();
     stick({ x: kx, y: ky - 8, face: -1, hat: 'kalpak', point: true, gun: false, col: '#111' });
     label('Mustafa Kemal', kx, ky - 100, { size: 15, bg: 'rgba(17,17,17,.85)' });
-    bubble(['"Ben size taarruzu emretmiyorum,', 'ölmeyi emrediyorum!"'], kx - 230, ky - 120, fade(T, .15, 2.6, .25));
+    bubble(['"Ben size taarruzu emretmiyorum,', 'ölmeyi emrediyorum!"'], kx - 230, ky - 120, fade(T, .5, 3.7, .25));
     for (const t of [...this.turks].reverse()) { const p = this.tPos(t, T);
       stick({ x: p.x, y: p.y, face: -1, run: p.run, hat: 'kabalak', bayonet: true, flag: t.i === 2, T, band: '#e30a17' }); }
-    if (T > 1.6 && T < 3.6) { const a = fade(T, 1.6, 3.6, .3); ctx.save(); ctx.globalAlpha = a; ctx.translate(760 - (T - 1.6) * 120, 250); ctx.rotate(-.06);
+    if (T > 3.0 && T < 5.4) { const a = fade(T, 3.0, 5.4, .3); ctx.save(); ctx.globalAlpha = a; ctx.translate(760 - (T - 3.0) * 120, 250); ctx.rotate(-.06);
       ctx.font = '900 54px Impact, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#111'; ctx.strokeText('ALLAH ALLAH!', 0, 0); ctx.fillStyle = '#ffd23f'; ctx.fillText('ALLAH ALLAH!', 0, 0); ctx.restore(); }
-    label('57. Alay', 1170, this.g(1170) - 105, { a: fade(T, .9, 1.9), size: 15, bg: 'rgba(227,10,23,.85)' });
+    label('57. Alay', 1170, this.g(1170) - 105, { a: fade(T, 1.0, 2.9), size: 15, bg: 'rgba(227,10,23,.85)' });
   } },
 // 5) Evacuation
-{ a: 16, b: 18, date: 'Ocak 1916', cap: 'İtilaf kuvvetleri geceleyin gizlice çekiliyor. Boğaz geçilemedi!',
+{ a: 28, b: 32.5, date: 'Ocak 1916', chap: 'Tahliye', cap: 'İtilaf kuvvetleri geceleyin gizlice çekiliyor. Boğaz geçilemedi!',
   update(T, dt) { for (let i = 0; i < 3; i++) smokeFrom(640 + i * 240 - T * 200 + 20, WL - 82 * .8, 10, dt, '#2a2d38'); },
   draw(T) {
     sky(['#03050c', '#0c1328', '#1d2547'], SEAY); stars(1, T);
@@ -502,7 +502,7 @@ const scenes = [
     flag(1240, 290, 40, 27, T, 1);
   } },
 // 6) Finale
-{ a: 18, b: END, date: null,
+{ a: 32.5, b: END, date: null, chap: 'Çanakkale Geçilmez',
   update(T) { at(T, 0, 'pad', pad); },
   draw(T) {
     sky(['#2b1b3d', '#9e3a3a', '#f39a4a', '#ffd38a'], 560);
@@ -523,8 +523,28 @@ const scenes = [
   } },
 ];
 
+// chapter-card wipe: a skewed slab sweeps in, shows the chapter, sweeps out
+function wipe(sc, n, k) {
+  if (k <= 0 || k >= 1) return;
+  const sk = 240; let x0, x1, edge;
+  if (k < .5) { x0 = -sk; x1 = lerp(-sk, W + sk, ease(k * 2)); edge = x1; }
+  else { x0 = lerp(-sk, W + sk, ease((k - .5) * 2)); x1 = W + sk * 2; edge = x0; }
+  const slab = (a, b, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(a, 0); ctx.lineTo(b, 0); ctx.lineTo(b - sk, H); ctx.lineTo(a - sk, H); ctx.closePath(); ctx.fill(); };
+  slab(x0, x1, '#0b0b10');
+  slab(k < .5 ? edge - 18 : edge, k < .5 ? edge : edge + 18, '#e30a17');
+  const a = clamp((k - .2) / .12) * clamp((.8 - k) / .12);
+  if (a <= 0) return;
+  ctx.save(); ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x1, 0); ctx.lineTo(x1 - sk, H); ctx.lineTo(x0 - sk, H); ctx.closePath(); ctx.clip();
+  ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const dx = (k - .5) * 60;
+  ctx.font = '700 20px system-ui, sans-serif'; ctx.fillStyle = '#e30a17'; ctx.fillText('BÖLÜM ' + n + ' / ' + (scenes.length - 1), W / 2 + dx * .5, H / 2 - 70);
+  ctx.font = '700 76px Georgia, serif'; ctx.fillStyle = '#f4efe6'; ctx.fillText(sc.chap, W / 2 + dx, H / 2);
+  ctx.font = 'italic 28px Georgia, serif'; ctx.fillStyle = 'rgba(244,239,230,.75)'; ctx.fillText(sc.date || '1915 – 1916', W / 2 + dx * 1.5, H / 2 + 62);
+  ctx.restore();
+}
+
 // ---------- main loop ----------
-let t = 0, running = false, cur = -1, last = 0;
+let t = 0, running = false, paused = false, cur = -1, last = 0;
 function reset() { t = 0; cur = -1; P = []; tracers = []; fired = new Set(); shake = flash = 0; R = mulberry32(1915); scenes.forEach(s => s.init && s.init()); }
 function step(dt) {
   t = Math.min(END, t + dt);
@@ -541,7 +561,7 @@ function render() {
   if (flash > .01) { ctx.fillStyle = `rgba(255,245,220,${flash})`; ctx.fillRect(0, 0, W, H); }
   // caption
   if (s.date) {
-    const a = fade(T, .25, s.b - s.a - .1, .3), off = (1 - a) * 30;
+    const a = fade(T, .7, s.b - s.a - .5, .3), off = (1 - a) * 30;
     ctx.globalAlpha = a; ctx.font = '600 23px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     const tw = ctx.measureText(s.cap).width; ctx.font = '800 18px system-ui, sans-serif'; const dw = ctx.measureText(s.date).width + 28;
     const bw = Math.min(W - 40, tw + dw + 44), bx = (W - bw) / 2, by = H - 78 + off;
@@ -552,24 +572,30 @@ function render() {
     ctx.globalAlpha = 1;
   }
   // scene transitions
-  let fa = clamp(1 - t / .5);
-  for (const sc of scenes.slice(1)) fa = Math.max(fa, clamp(1 - Math.abs(t - sc.a) / .22));
+  const fa = clamp(1 - t / .6);
   if (fa > 0) { ctx.fillStyle = `rgba(0,0,0,${fa})`; ctx.fillRect(0, 0, W, H); }
+  scenes.forEach((sc, n) => { if (n) wipe(sc, n, (t - (sc.a - .7)) / 1.4); });
+  if (paused && running) { ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, 0, W, H); ctx.fillStyle = '#fff';
+    ctx.fillRect(W / 2 - 34, H / 2 - 40, 22, 80); ctx.fillRect(W / 2 + 12, H / 2 - 40, 22, 80);
+    ctx.font = '600 22px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Devam etmek için dokun', W / 2, H / 2 + 80); }
   ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, H - 5, W, 5); ctx.fillStyle = '#e30a17'; ctx.fillRect(0, H - 5, W * t / END, 5);
 }
 function loop(now) {
   if (!running) return;
   const dt = clamp((now - last) / 1000 || 0, 0, .05); last = now;
-  step(dt); render();
+  if (!paused) step(dt); render();
   if (t >= END) { running = false; document.getElementById('end').classList.remove('hidden'); return; }
   requestAnimationFrame(loop);
 }
 function play() {
-  resize(); try { initAudio(); } catch (e) {} reset(); running = true; last = performance.now();
+  resize(); try { initAudio(); } catch (e) {} reset(); running = true; paused = false; last = performance.now();
   document.getElementById('start').classList.add('hidden'); document.getElementById('end').classList.add('hidden');
   requestAnimationFrame(loop);
 }
 document.getElementById('playBtn').onclick = play;
+function togglePause() { if (!running) return; paused = !paused; if (ac) paused ? ac.suspend() : ac.resume(); }
+cv.addEventListener('click', togglePause);
+addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); togglePause(); } });
 document.getElementById('replayBtn').onclick = play;
 const muteBtn = document.getElementById('mute');
 muteBtn.onclick = () => { muted = !muted; muteBtn.textContent = muted ? '🔇' : '🔊'; };

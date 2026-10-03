@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/shader-transitions.js"></script>
+    <style>
+      @font-face { font-family: "Instrument Serif"; font-style: normal; font-weight: 400; src: url("assets/fonts/is-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Instrument Serif"; font-style: normal; font-weight: 400; src: url("assets/fonts/is-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      @font-face { font-family: "Instrument Serif"; font-style: italic; font-weight: 400; src: url("assets/fonts/is-italic-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Instrument Serif"; font-style: italic; font-weight: 400; src: url("assets/fonts/is-italic-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+
+      /* palette: ink #14110f · cream #f3ece2 · muted #a99c90 · clay #d97757 · line #3a302a */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #14110f; }
+      #root { position: relative; width: 100%; height: 100%; }
+      .scene { position: absolute; inset: 0; overflow: hidden; background-color: #14110f; color: #f3ece2; }
+      .serif { font-family: "Instrument Serif", serif; font-weight: 400; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      /* shared chrome */
+      .glow { position: absolute; width: 1500px; height: 1500px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(217,119,87,0.24) 0%, rgba(217,119,87,0.08) 40%, rgba(217,119,87,0) 70%); }
+      .ghost { position: absolute; font-family: "Instrument Serif", serif; font-style: italic; font-size: 560px; line-height: 1;
+        color: #241d19; white-space: nowrap; letter-spacing: -0.04em; }
+      .topbar { position: absolute; left: 140px; right: 140px; top: 70px; display: flex; justify-content: space-between;
+        font-family: "JetBrains Mono", monospace; font-size: 24px; letter-spacing: 0.14em; color: #a99c90; }
+      .topbar b { color: #d97757; font-weight: 700; }
+      .rule { position: absolute; left: 140px; right: 140px; top: 116px; height: 3px; background-color: #3a302a; transform-origin: left center; }
+      .h { font-family: "Instrument Serif", serif; font-weight: 400; letter-spacing: -0.03em; line-height: 0.98; color: #f3ece2; }
+      .h em { color: #d97757; }
+
+      /* S1 — soru */
+      #s1-h { position: absolute; left: 140px; top: 190px; font-size: 128px; width: 1500px; }
+      #s1-box { position: absolute; left: 140px; right: 140px; top: 520px; height: 190px; border: 4px solid #3a302a; border-radius: 40px;
+        background-color: #1c1714; display: flex; align-items: center; padding: 0 56px; }
+      #s1-row { display: flex; align-items: center; font-family: "Instrument Serif", serif; font-size: 84px; white-space: pre; }
+      .tok { position: relative; display: inline-block; border: 0 solid rgba(217,119,87,0); border-radius: 18px; padding: 4px 0; }
+      .tok .ch { font-size: 0; }
+      .tok .id { position: absolute; left: 0; right: 0; top: 128px; text-align: center; font-family: "JetBrains Mono", monospace;
+        font-size: 28px; color: #a99c90; }
+      #s1-caret { display: inline-block; width: 6px; height: 88px; background-color: #d97757; margin-left: 8px; }
+      #s1-send { position: absolute; right: 44px; top: 43px; width: 96px; height: 96px; border-radius: 50%; background-color: #d97757;
+        display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 52px; color: #14110f; font-weight: 700; }
+      #s1-note { position: absolute; left: 140px; bottom: 110px; font-family: "JetBrains Mono", monospace; font-size: 34px; color: #a99c90; }
+      #s1-note b { color: #d97757; }
+
+      /* S2 — token → vektör */
+      #s2-list { position: absolute; left: 140px; top: 190px; width: 860px; display: flex; flex-direction: column; gap: 22px; }
+      .vrow { display: flex; align-items: center; gap: 28px; height: 96px; }
+      .vchip { width: 250px; flex: none; font-family: "JetBrains Mono", monospace; font-size: 40px; color: #f3ece2; border: 4px solid #d97757;
+        border-radius: 16px; padding: 12px 18px; background-color: #2a1d17; white-space: pre; }
+      .bars { display: flex; align-items: center; gap: 9px; height: 96px; }
+      .bar { width: 22px; border-radius: 6px; transform-origin: center center; }
+      #s2-h { position: absolute; left: 1080px; top: 200px; width: 720px; font-size: 112px; }
+      #s2-vec { position: absolute; left: 1080px; top: 640px; width: 720px; font-family: "JetBrains Mono", monospace; font-size: 34px; line-height: 1.5; color: #a99c90; }
+      #s2-vec b { color: #d97757; font-weight: 700; }
+
+      /* S3 — dikkat */
+      #s3-h { position: absolute; left: 140px; top: 180px; font-size: 118px; width: 1300px; }
+      #s3-svg { position: absolute; inset: 0; }
+      #s3-note { position: absolute; left: 140px; top: 390px; width: 900px; font-family: "JetBrains Mono", monospace; font-size: 32px; line-height: 1.5; color: #a99c90; }
+      #s3-note b { color: #d97757; }
+      .nlabel { font-family: "JetBrains Mono", monospace; font-size: 34px; fill: #f3ece2; }
+      .pct { font-family: "JetBrains Mono", monospace; font-size: 36px; font-weight: 700; fill: #d97757; }
+      #s3-layers { position: absolute; right: 140px; top: 200px; font-family: "JetBrains Mono", monospace; font-size: 30px; color: #a99c90; text-align: right; }
+      #s3-layers b { display: block; font-family: "Instrument Serif", serif; font-weight: 400; font-size: 120px; color: #f3ece2; line-height: 1; }
+
+      /* S4 — düşünme */
+      #s4-lines { position: absolute; left: 140px; top: 210px; width: 1060px; display: flex; flex-direction: column; gap: 30px; }
+      .tl { position: relative; font-family: "JetBrains Mono", monospace; font-size: 36px; line-height: 1.35; color: #a99c90; padding: 6px 14px; }
+      .tl i { font-style: normal; color: #d97757; margin-right: 18px; }
+      .tl .strike { position: absolute; left: 0; right: 0; top: 50%; height: 5px; background-color: #d97757; transform-origin: left center; }
+      .tl .hl { position: absolute; inset: 0; background-color: #3b2419; border-radius: 10px; transform-origin: left center; z-index: -1; }
+      #s4-lines .tl { z-index: 0; isolation: isolate; }
+      #s4-h { position: absolute; left: 1290px; top: 210px; width: 520px; font-size: 104px; }
+      #s4-tree { position: absolute; left: 1230px; top: 620px; width: 660px; height: 360px; }
+      .tlab { font-family: "JetBrains Mono", monospace; font-size: 26px; fill: #a99c90; }
+
+      /* S5 — araçlar */
+      #s5-h { position: absolute; left: 140px; top: 200px; width: 680px; font-size: 128px; }
+      #s5-sub { position: absolute; left: 140px; top: 470px; width: 680px; font-family: "Instrument Serif", serif; font-style: italic; font-size: 58px; color: #a99c90; line-height: 1.1; }
+      #s5-chips { position: absolute; left: 140px; top: 690px; display: flex; gap: 22px; }
+      .tchip { font-family: "JetBrains Mono", monospace; font-size: 34px; padding: 14px 26px; border-radius: 999px; border: 4px solid #3a302a; color: #f3ece2; background-color: #1c1714; }
+      #s5-term { position: absolute; left: 900px; top: 190px; width: 880px; height: 720px; border-radius: 28px; border: 4px solid #3a302a; background-color: #1c1714; overflow: hidden; }
+      #s5-term .bar0 { height: 70px; border-bottom: 4px solid #3a302a; display: flex; align-items: center; gap: 14px; padding: 0 28px; }
+      #s5-term .dot { width: 20px; height: 20px; border-radius: 50%; background-color: #3a302a; }
+      #s5-term .ttl { margin-left: 18px; font-family: "JetBrains Mono", monospace; font-size: 22px; color: #a99c90; }
+      .tline { position: absolute; left: 40px; right: 40px; font-family: "JetBrains Mono", monospace; font-size: 30px; color: #f3ece2; white-space: pre; }
+      .tline i { font-style: normal; color: #d97757; }
+      .tline .ok { color: #8fbf8a; }
+      #s5-prog { position: absolute; left: 40px; top: 300px; width: 640px; height: 22px; border-radius: 11px; background-color: #2b231e; overflow: hidden; }
+      #s5-fill { width: 100%; height: 100%; background-color: #d97757; transform-origin: left center; }
+      #s5-pct { position: absolute; left: 706px; top: 290px; font-family: "JetBrains Mono", monospace; font-size: 30px; color: #f3ece2; }
+      #s5-thumb { position: absolute; left: 40px; top: 430px; width: 400px; height: 225px; border-radius: 14px; overflow: hidden; border: 4px solid #d97757;
+        background: linear-gradient(#6aa4cf, #f1d7ad 55%, #2f6f93 56%, #0e3550); }
+      #s5-thumb .ship { position: absolute; left: 120px; top: 98px; width: 120px; height: 26px; background-color: #3f4652; border-radius: 0 0 14px 14px; }
+      #s5-thumb .stack { position: absolute; left: 160px; top: 76px; width: 12px; height: 24px; background-color: #3f4652; }
+      #s5-thumb .cliff { position: absolute; right: -20px; top: 100px; width: 120px; height: 160px; background-color: #8a7350; transform: skewX(-12deg); }
+      #s5-thumb .flag { position: absolute; right: 26px; top: 70px; width: 34px; height: 22px; background-color: #e30a17; }
+      #s5-thumb .cap { position: absolute; left: 10px; bottom: 10px; font-family: "JetBrains Mono", monospace; font-size: 16px; color: #ffffff; background-color: rgba(10,10,14,0.75); padding: 4px 10px; border-radius: 8px; }
+
+      /* S6 — cevap */
+      #s6-h { position: absolute; left: 140px; top: 170px; width: 1640px; font-size: 76px; }
+      #s6-ans { position: absolute; left: 140px; right: 140px; top: 330px; display: flex; gap: 48px; align-items: baseline; font-family: "Instrument Serif", serif; font-size: 230px; letter-spacing: -0.04em; line-height: 1; }
+      #s6-ans span { display: inline-block; }
+      #s6-ans .w2 { color: #d97757; font-style: italic; }
+      #s6-ul { position: absolute; left: 140px; top: 600px; width: 1500px; height: 6px; background-color: #d97757; transform-origin: left center; }
+      .cand { position: absolute; left: 140px; top: 660px; width: 1640px; display: flex; flex-direction: column; gap: 20px; }
+      .crow { display: flex; align-items: center; gap: 30px; font-family: "JetBrains Mono", monospace; font-size: 38px; color: #a99c90; }
+      .crow .w { width: 300px; white-space: pre; }
+      .crow .track { width: 900px; height: 30px; border-radius: 15px; background-color: #241d19; overflow: hidden; }
+      .crow .fill { height: 100%; background-color: #6b5a4e; transform-origin: left center; }
+      .crow.win { color: #f3ece2; }
+      .crow.win .fill { background-color: #d97757; }
+      .crow .p { width: 140px; text-align: right; }
+      #s6-sig { position: absolute; left: 140px; top: 690px; font-family: "JetBrains Mono", monospace; font-size: 40px; color: #a99c90; }
+      #s6-sig b { color: #f3ece2; font-weight: 700; }
+      #blackout { position: absolute; inset: 0; background-color: #000000; opacity: 0; z-index: 50; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="36" data-width="1920" data-height="1080">
+
+      <!-- ============ S1 — SORU ============ -->
+      <div id="s1" class="scene">
+        <div class="glow" id="s1-glow" style="left:260px;top:-300px"></div>
+        <div class="ghost" aria-hidden="true" data-layout-allow-overlap data-layout-allow-overflow style="left:820px;top:560px">soru</div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>01</b> / 06 — SORU</span></div>
+        <div class="rule" id="s1-rule"></div>
+        <h1 class="h" id="s1-h">Her şey bir <em>soruyla</em> başlar.</h1>
+        <div id="s1-box">
+          <div id="s1-row"></div>
+          <div id="s1-send">↑</div>
+        </div>
+        <div id="s1-note">Ama Claude kelimeleri değil, <b>parçaları (token)</b> görür.</div>
+      </div>
+
+      <!-- ============ S2 — TOKEN → SAYI ============ -->
+      <div id="s2" class="scene">
+        <div class="glow" id="s2-glow" style="left:900px;top:-200px"></div>
+        <div class="ghost" aria-hidden="true" data-layout-allow-overlap data-layout-allow-overflow style="left:700px;top:600px">token</div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>02</b> / 06 — TOKEN</span></div>
+        <div class="rule" id="s2-rule"></div>
+        <div id="s2-list"></div>
+        <h2 class="h" id="s2-h">Her parça bir <em>sayı dizisine</em> dönüşür.</h2>
+        <div id="s2-vec">“Çan” → [<b id="s2-n1">0.00</b>, <b id="s2-n2">0.00</b>, <b id="s2-n3">0.00</b> …]<br />binlerce boyutlu bir anlam haritası.</div>
+      </div>
+
+      <!-- ============ S3 — DİKKAT ============ -->
+      <div id="s3" class="scene">
+        <div class="glow" id="s3-glow" style="left:600px;top:200px"></div>
+        <div class="ghost" aria-hidden="true" data-layout-allow-overlap data-layout-allow-overflow style="left:-60px;top:560px">dikkat</div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>03</b> / 06 — DİKKAT</span></div>
+        <div class="rule" id="s3-rule"></div>
+        <h2 class="h" id="s3-h">Her parça <em>diğerlerine</em> bakar.</h2>
+        <div id="s3-note">“anlat” en çok <b>“20”</b> ve <b>“saniyede”</b>ye bakıyor:<br />demek ki cevap kısa olmalı.</div>
+        <div id="s3-layers">katman<b id="s3-ln">1</b></div>
+        <svg id="s3-svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+      </div>
+
+      <!-- ============ S4 — DÜŞÜNME ============ -->
+      <div id="s4" class="scene">
+        <div class="glow" id="s4-glow" style="left:900px;top:300px"></div>
+        <div class="ghost" aria-hidden="true" data-layout-allow-overlap data-layout-allow-overflow style="left:520px;top:600px">düşünce</div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>04</b> / 06 — DÜŞÜNME</span></div>
+        <div class="rule" id="s4-rule"></div>
+        <div id="s4-lines">
+          <div class="tl"><i>›</i>20 saniye istiyor. Çok kısa bir süre.</div>
+          <div class="tl"><i>›</i>Önemli anlar: Nusret, 18 Mart, çıkarma…</div>
+          <div class="tl" id="s4-rej"><span class="strike"></span><i>›</i>Bütün tarihleri sıralasam? Okunmaz.</div>
+          <div class="tl" id="s4-acc"><span class="hl"></span><i>›</i>Her sahneye bir tarih + tek cümle.</div>
+          <div class="tl"><i>›</i>Önce yaz, sonra çalıştırıp kontrol et.</div>
+        </div>
+        <h2 class="h" id="s4-h">Cevaplamadan önce <em>düşünür.</em></h2>
+        <svg id="s4-tree" width="660" height="360" viewBox="0 0 660 360"></svg>
+      </div>
+
+      <!-- ============ S5 — ARAÇLAR ============ -->
+      <div id="s5" class="scene">
+        <div class="glow" id="s5-glow" style="left:600px;top:-400px"></div>
+        <div class="ghost" aria-hidden="true" data-layout-allow-overlap data-layout-allow-overflow style="left:-80px;top:620px">araç</div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>05</b> / 06 — ARAÇLAR</span></div>
+        <div class="rule" id="s5-rule"></div>
+        <h2 class="h" id="s5-h">Araç <em>kullanır.</em></h2>
+        <div id="s5-sub">Kodu yazar, çalıştırır, sonra sonucuna bakar.</div>
+        <div id="s5-chips"><span class="tchip" id="c-w">Write</span><span class="tchip" id="c-b">Bash</span><span class="tchip" id="c-r">Read</span></div>
+        <div id="s5-term">
+          <div class="bar0"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="ttl">claude — canakkale-1915</span></div>
+          <div class="tline" id="t1" style="top:110px"><i>●</i> Write  index.html            <span class="ok">✓</span></div>
+          <div class="tline" id="t2" style="top:190px"><i>●</i> Bash   tarayıcıda kareleri çek</div>
+          <div id="s5-prog"><div id="s5-fill"></div></div>
+          <div id="s5-pct">0%</div>
+          <div class="tline" id="t3" style="top:360px"><i>●</i> Read   kare_07.png</div>
+          <div id="s5-thumb"><div class="ship"></div><div class="stack"></div><div class="cliff"></div><div class="flag"></div><div class="cap">Bouvet battı!</div></div>
+          <div class="tline" id="t4" style="top:670px; left:470px; right:auto"><span class="ok">✓</span> kare doğru</div>
+        </div>
+      </div>
+
+      <!-- ============ S6 — CEVAP ============ -->
+      <div id="s6" class="scene">
+        <div class="glow" id="s6-glow" style="left:200px;top:-200px"></div>
+        <div class="topbar"><span>CLAUDE'UN BEYNİ</span><span><b>06</b> / 06 — CEVAP</span></div>
+        <div class="rule" id="s6-rule"></div>
+        <h2 class="h" id="s6-h">Ve cevabı yazar: <em>parça parça</em>, olasılıklara bakarak.</h2>
+        <div id="s6-ans"><span class="w1">Çanakkale</span><span class="w2">geçilmez.</span></div>
+        <div id="s6-ul"></div>
+        <div class="cand" id="cand1">
+          <div class="crow win"><span class="w">Çanakkale</span><span class="track"><span class="fill" style="display:block;width:71%"></span></span><span class="p" data-v="71">0%</span></div>
+          <div class="crow"><span class="w">1915</span><span class="track"><span class="fill" style="display:block;width:18%"></span></span><span class="p" data-v="18">0%</span></div>
+          <div class="crow"><span class="w">Boğaz</span><span class="track"><span class="fill" style="display:block;width:11%"></span></span><span class="p" data-v="11">0%</span></div>
+        </div>
+        <div class="cand" id="cand2">
+          <div class="crow win"><span class="w">geçilmez.</span><span class="track"><span class="fill" style="display:block;width:87%"></span></span><span class="p" data-v="87">0%</span></div>
+          <div class="crow"><span class="w">Savaşı</span><span class="track"><span class="fill" style="display:block;width:9%"></span></span><span class="p" data-v="9">0%</span></div>
+          <div class="crow"><span class="w">Boğazı</span><span class="track"><span class="fill" style="display:block;width:4%"></span></span><span class="p" data-v="4">0%</span></div>
+        </div>
+        <div id="s6-sig"><b>Claude'un beyni:</b> kelime kelime, ihtimal ihtimal.</div>
+      </div>
+
+      <div id="blackout"></div>
+      <audio id="soundtrack" src="assets/audio/beyin.wav" data-start="0" data-duration="36" data-track-index="9" data-volume="1"></audio>
+    </div>
+
+    <script>
+      // ---------- deterministic helpers ----------
+      function prng(seed) { return function () { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      var rand = prng(1915);
+      var SVGNS = "http://www.w3.org/2000/svg";
+      function el(tag, attrs, parent) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
+
+      // Scene windows (seconds). Transitions start at these times.
+      var T1 = 4.6, T2 = 10.2, T3 = 16.4, T4 = 23.0, T5 = 29.0, END = 36;
+      var TOKENS = ["Çan", "akkale", " Savaşı", "'nı", " 20", " saniyede", " anlat"];
+      var IDS = ["31207", "8812", "50291", "1745", "410", "22918", "6634"];
+
+      // ---------- build S1 token row (chars revealed by typing) ----------
+      var row = document.getElementById("s1-row");
+      var chars = [];
+      TOKENS.forEach(function (t, i) {
+        var tok = document.createElement("span"); tok.className = "tok"; tok.id = "tok" + i;
+        for (var c = 0; c < t.length; c++) { var ch = document.createElement("span"); ch.className = "ch"; ch.textContent = t[c]; tok.appendChild(ch); chars.push(ch); }
+        var id = document.createElement("span"); id.className = "id"; id.textContent = IDS[i]; tok.appendChild(id);
+        row.appendChild(tok);
+      });
+      var caret = document.createElement("span"); caret.id = "s1-caret"; row.appendChild(caret);
+
+      // ---------- build S2 vector rows ----------
+      var list = document.getElementById("s2-list");
+      var barEls = [];
+      TOKENS.forEach(function (t, i) {
+        var r = document.createElement("div"); r.className = "vrow"; r.id = "vrow" + i;
+        var chip = document.createElement("span"); chip.className = "vchip"; chip.textContent = t.trim(); r.appendChild(chip);
+        var bars = document.createElement("div"); bars.className = "bars";
+        for (var b = 0; b < 18; b++) {
+          var bar = document.createElement("span"); bar.className = "bar";
+          var h = 14 + Math.round(rand() * 80); bar.style.height = h + "px";
+          bar.style.backgroundColor = rand() < 0.28 ? "#d97757" : (rand() < 0.5 ? "#f3ece2" : "#6b5a4e");
+          bars.appendChild(bar); barEls.push(bar);
+        }
+        r.appendChild(bars); list.appendChild(r);
+      });
+
+      // ---------- build S3 attention graph ----------
+      var svg = document.getElementById("s3-svg");
+      var NX = [], NY = [];
+      for (var i = 0; i < 7; i++) { NX.push(230 + i * 243); NY.push(900 - Math.sin((i / 6) * Math.PI) * 60); }
+      var W = [0.05, 0.06, 0.07, 0.03, 0.41, 0.33];
+      var layerGroups = [];
+      for (var L = 3; L >= 0; L--) {
+        var g = el("g", { id: "layer" + L, opacity: L === 0 ? 1 : 0.0 }, svg);
+        layerGroups[L] = g;
+        for (var j = 0; j < 6; j++) {
+          var x0 = NX[6], y0 = NY[6], x1 = NX[j], y1 = NY[j];
+          var lift = 140 + (x0 - x1) * 0.3;
+          var w = L === 0 ? W[j] : [0.2, 0.1, 0.15, 0.3, 0.12, 0.08][(j + L) % 6];
+          el("path", { d: "M" + x0 + " " + (y0 - 20) + " Q " + (x0 + x1) / 2 + " " + (y0 - lift) + " " + x1 + " " + (y1 - 20),
+            fill: "none", stroke: w > 0.3 ? "#d97757" : "#a99c90", "stroke-width": (3 + w * 34).toFixed(1), "stroke-linecap": "round",
+            pathLength: "1", "stroke-dasharray": "1 1", "stroke-dashoffset": "1", "class": "att L" + L, opacity: w > 0.3 ? 1 : 0.6 }, g);
+        }
+      }
+      var nodes = el("g", { id: "nodes" }, svg);
+      for (i = 0; i < 7; i++) {
+        var ng = el("g", { "class": "node", id: "node" + i }, nodes);
+        el("circle", { cx: NX[i], cy: NY[i], r: i === 6 ? 24 : 16, fill: i === 6 || i === 4 || i === 5 ? "#d97757" : "#f3ece2" }, ng);
+        var tx = el("text", { x: NX[i], y: NY[i] + 70, "text-anchor": "middle", "class": "nlabel" }, ng); tx.textContent = TOKENS[i].trim();
+      }
+      var p1 = el("text", { x: (NX[6] + NX[4]) / 2, y: 668, "text-anchor": "middle", "class": "pct", id: "pct4", opacity: 0 }, svg); p1.textContent = "%41";
+      var p2 = el("text", { x: (NX[6] + NX[5]) / 2, y: 720, "text-anchor": "middle", "class": "pct", id: "pct5", opacity: 0 }, svg); p2.textContent = "%33";
+
+      // ---------- build S4 decision tree ----------
+      var tree = document.getElementById("s4-tree");
+      var root = [60, 180], leaves = [[380, 50, "liste"], [380, 180, "her şey"], [380, 310, "sahne + tarih"]];
+      leaves.forEach(function (lf, k) {
+        el("path", { d: "M" + root[0] + " " + root[1] + " C 240 " + root[1] + " 240 " + lf[1] + " " + (lf[0] - 30) + " " + lf[1], fill: "none",
+          stroke: k === 2 ? "#d97757" : "#a99c90", "stroke-width": k === 2 ? 6 : 4, pathLength: "1", "stroke-dasharray": "1 1", "stroke-dashoffset": "1", id: "br" + k }, tree);
+        el("circle", { cx: lf[0] - 14, cy: lf[1], r: 12, fill: k === 2 ? "#d97757" : "#a99c90", id: "lf" + k, opacity: 0 }, tree);
+        var t = el("text", { x: lf[0] + 6, y: lf[1] + 9, "class": "tlab", id: "lt" + k, opacity: 0 }, tree); t.textContent = lf[2];
+        if (k < 2) { var x = el("text", { x: lf[0] - 26, y: lf[1] - 22, "class": "tlab", id: "lx" + k, opacity: 0, fill: "#d97757" }, tree); x.textContent = "✕"; }
+      });
+      el("circle", { cx: root[0], cy: root[1], r: 18, fill: "#f3ece2", id: "troot" }, tree);
+
+      // ---------- timeline ----------
+      var tl = HyperShader.init({
+        bgColor: "#14110f",
+        accentColor: "#d97757",
+        scenes: ["s1", "s2", "s3", "s4", "s5", "s6"],
+        transitions: [
+          { time: T1, shader: "cinematic-zoom", duration: 0.8 },
+          { time: T2, shader: "cinematic-zoom", duration: 0.8 },
+          { time: T3, shader: "gravitational-lens", duration: 1.0 },
+          { time: T4, shader: "glitch", duration: 0.6 },
+          { time: T5, shader: "light-leak", duration: 1.0 },
+        ],
+      });
+
+      function count(target, from, to, at, dur, dec, suffix) {
+        var o = { v: from };
+        tl.to(o, { v: to, duration: dur, ease: "power2.out", onUpdate: function () { target.textContent = o.v.toFixed(dec) + (suffix || ""); } }, at);
+      }
+      function breathe(sel, at, dur) {
+        tl.fromTo(sel, { scale: 0.9 }, { scale: 1.12, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: Math.max(0, Math.floor(dur / 1.6) - 1) }, at);
+      }
+
+      // ---- S1: SORU (0 – 4.6)
+      breathe("#s1-glow", 0, 4.8);
+      tl.fromTo("#s1-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, 0.1);
+      tl.fromTo("#s1-h", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 0.15);
+      tl.fromTo("#s1-box", { y: 80, opacity: 0, scale: 0.96 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 0.3);
+      chars.forEach(function (ch, k) { tl.set(ch, { fontSize: 84 }, 0.6 + k * 0.042); });
+      var TYPED = 0.6 + chars.length * 0.042; // ≈ 2.07s
+      tl.fromTo("#s1-caret", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "steps(1)", yoyo: true, repeat: 7 }, 0.3);
+      tl.fromTo("#s1-send", { scale: 1 }, { scale: 0.82, duration: 0.1, ease: "power2.in", yoyo: true, repeat: 1 }, TYPED + 0.25);
+      tl.fromTo("#s1-box", { borderColor: "#3a302a" }, { borderColor: "#d97757", duration: 0.2 }, TYPED + 0.3);
+      // tokenize: borders appear, chips spread, IDs pop
+      TOKENS.forEach(function (t, i) {
+        var at = TYPED + 0.55 + i * 0.07;
+        tl.fromTo("#tok" + i, { borderColor: "rgba(217,119,87,0)", backgroundColor: "rgba(42,29,23,0)", borderWidth: 0, paddingLeft: 0, paddingRight: 0, x: 0 },
+          { borderColor: "rgba(217,119,87,1)", backgroundColor: "rgba(42,29,23,1)", borderWidth: 4, paddingLeft: 8, paddingRight: 8, x: i * 18, duration: 0.45, ease: "back.out(2)" }, at);
+        tl.fromTo("#tok" + i + " .id", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, at + 0.15);
+      });
+      tl.fromTo("#s1-box", { height: 190 }, { height: 250, duration: 0.5, ease: "power3.inOut" }, TYPED + 0.5);
+      tl.fromTo("#s1-note", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, TYPED + 0.9);
+
+      // ---- S2: TOKEN → SAYI (4.6 – 10.2)
+      var A2 = T1 + 0.3;
+      breathe("#s2-glow", T1, 5.8);
+      tl.fromTo("#s2-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A2);
+      TOKENS.forEach(function (t, i) {
+        tl.fromTo("#vrow" + i + " .vchip", { x: -120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, A2 + i * 0.08);
+      });
+      barEls.forEach(function (b, k) {
+        var r = Math.floor(k / 18), c = k % 18;
+        tl.fromTo(b, { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "back.out(2.2)" }, A2 + 0.45 + r * 0.09 + c * 0.025);
+        tl.to(b, { scaleY: 0.35 + ((k * 37) % 60) / 100, duration: 0.55, ease: "sine.inOut", yoyo: true, repeat: 5 }, A2 + 1.6 + ((k * 13) % 10) * 0.05);
+      });
+      tl.fromTo("#s2-h", { y: 70, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.9, ease: "power3.out" }, A2 + 0.6);
+      tl.fromTo("#s2-vec", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, A2 + 1.5);
+      count(document.getElementById("s2-n1"), 0, 0.12, A2 + 1.7, 1.4, 2);
+      count(document.getElementById("s2-n2"), 0, -0.83, A2 + 1.8, 1.4, 2);
+      count(document.getElementById("s2-n3"), 0, 0.47, A2 + 1.9, 1.4, 2);
+
+      // ---- S3: DİKKAT (10.2 – 16.4)
+      var A3 = T2 + 0.3;
+      breathe("#s3-glow", T2, 6.2);
+      tl.fromTo("#s3-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A3);
+      tl.fromTo("#s3-h", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, A3 + 0.05);
+      for (i = 0; i < 7; i++) tl.fromTo("#node" + i, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)" }, A3 + 0.2 + i * 0.07);
+      tl.fromTo("#node6 circle", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.6, duration: 0.3, ease: "power2.out", yoyo: true, repeat: 1 }, A3 + 0.9);
+      document.querySelectorAll("#layer0 .att").forEach(function (p, k) {
+        tl.fromTo(p, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.8, ease: "power2.inOut" }, A3 + 1.1 + k * 0.12);
+      });
+      tl.fromTo("#pct4", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, A3 + 2.2);
+      tl.fromTo("#pct5", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, A3 + 2.35);
+      tl.fromTo("#s3-note", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, A3 + 2.5);
+      // ...and again, layer after layer
+      tl.fromTo("#s3-layers", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, A3 + 3.3);
+      var lnEl = document.getElementById("s3-ln"), lnObj = { v: 1 };
+      tl.to(lnObj, { v: 48, duration: 2.2, ease: "power1.in", onUpdate: function () { lnEl.textContent = Math.round(lnObj.v) + (lnObj.v > 47.5 ? "…" : ""); } }, A3 + 3.5);
+      for (var L2 = 1; L2 <= 3; L2++) {
+        tl.fromTo("#layer" + L2, { opacity: 0, y: 0 }, { opacity: 0.55 - L2 * 0.12, y: -L2 * 46, duration: 0.6, ease: "power3.out" }, A3 + 3.4 + L2 * 0.35);
+        document.querySelectorAll("#layer" + L2 + " .att").forEach(function (p, k) {
+          tl.fromTo(p, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.out" }, A3 + 3.4 + L2 * 0.35 + k * 0.05);
+        });
+      }
+
+      // ---- S4: DÜŞÜNME (16.4 – 23.0)
+      var A4 = T3 + 0.5;
+      breathe("#s4-glow", T3, 6.6);
+      tl.fromTo("#s4-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A4);
+      tl.fromTo("#s4-h", { opacity: 0, y: 50, filter: "blur(12px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.0, ease: "power2.out" }, A4 + 0.1);
+      document.querySelectorAll("#s4-lines .tl").forEach(function (ln, k) {
+        tl.fromTo(ln, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + k * 0.85);
+      });
+      tl.fromTo("#s4-rej .strike", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, A4 + 0.4 + 2 * 0.85 + 0.55);
+      tl.to("#s4-rej", { opacity: 0.35, duration: 0.4 }, A4 + 0.4 + 2 * 0.85 + 0.9);
+      tl.fromTo("#s4-acc .hl", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + 3 * 0.85 + 0.3);
+      tl.fromTo("#s4-acc", { color: "#a99c90" }, { color: "#f3ece2", duration: 0.4 }, A4 + 0.4 + 3 * 0.85 + 0.3);
+      // decision tree
+      tl.fromTo("#troot", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.4, ease: "back.out(3)" }, A4 + 1.0);
+      for (var k2 = 0; k2 < 3; k2++) {
+        tl.fromTo("#br" + k2, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.inOut" }, A4 + 1.3 + k2 * 0.25);
+        tl.fromTo("#lf" + k2, { opacity: 0 }, { opacity: 1, duration: 0.2 }, A4 + 1.8 + k2 * 0.25);
+        tl.fromTo("#lt" + k2, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.3 }, A4 + 1.85 + k2 * 0.25);
+      }
+      [0, 1].forEach(function (k3) {
+        var at = A4 + 2.6 + k3 * 0.5;
+        tl.fromTo("#lx" + k3, { opacity: 0, scale: 2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, at);
+        tl.to(["#br" + k3, "#lf" + k3, "#lt" + k3], { opacity: 0.25, duration: 0.4 }, at + 0.2);
+      });
+      tl.fromTo("#lf2", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.9, duration: 0.35, ease: "power2.out", yoyo: true, repeat: 3 }, A4 + 3.8);
+      tl.fromTo("#lt2", { fill: "#a99c90" }, { fill: "#f3ece2", duration: 0.3 }, A4 + 3.8);
+
+      // ---- S5: ARAÇLAR (23.0 – 29.0)
+      var A5 = T4 + 0.3;
+      breathe("#s5-glow", T4, 6);
+      tl.fromTo("#s5-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A5);
+      tl.fromTo("#s5-h", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, A5);
+      tl.fromTo("#s5-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, A5 + 0.3);
+      tl.fromTo("#s5-term", { opacity: 0, x: 120, rotationY: -18, transformPerspective: 1600 }, { opacity: 1, x: 0, rotationY: 0, duration: 0.9, ease: "expo.out" }, A5 + 0.1);
+      tl.fromTo("#s5-chips .tchip", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "back.out(2)" }, A5 + 0.6);
+      var TT = [A5 + 0.9, A5 + 1.6, A5 + 3.6, A5 + 4.6];
+      ["#t1", "#t2", "#t3", "#t4"].forEach(function (s, k) { tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, TT[k]); });
+      [["#c-w", TT[0]], ["#c-b", TT[1]], ["#c-r", TT[2]]].forEach(function (c) {
+        tl.fromTo(c[0], { borderColor: "#3a302a", backgroundColor: "#1c1714" }, { borderColor: "#d97757", backgroundColor: "#3b2419", duration: 0.25 }, c[1]);
+        tl.fromTo(c[0], { scale: 1 }, { scale: 1.12, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }, c[1]);
+      });
+      tl.fromTo("#s5-prog", { opacity: 0 }, { opacity: 1, duration: 0.2 }, TT[1] + 0.2);
+      tl.fromTo("#s5-pct", { opacity: 0 }, { opacity: 1, duration: 0.2 }, TT[1] + 0.2);
+      tl.fromTo("#s5-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.6, ease: "power1.inOut" }, TT[1] + 0.3);
+      count(document.getElementById("s5-pct"), 0, 100, TT[1] + 0.3, 1.6, 0, "%");
+      tl.fromTo("#s5-thumb", { opacity: 0, scale: 0.6, transformOrigin: "0% 0%" }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }, TT[2] + 0.2);
+      tl.fromTo("#s5-thumb", { borderColor: "#d97757" }, { borderColor: "#8fbf8a", duration: 0.3 }, TT[3]);
+
+      // ---- S6: CEVAP (29.0 – 36.0)
+      var A6 = T5 + 0.5;
+      breathe("#s6-glow", T5, 7);
+      tl.fromTo("#s6-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A6);
+      tl.fromTo("#s6-h", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, A6);
+      function candRound(id, at) {
+        tl.fromTo(id, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, at);
+        document.querySelectorAll(id + " .crow").forEach(function (r, k) {
+          tl.fromTo(r.querySelector(".fill"), { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out" }, at + 0.2 + k * 0.08);
+          var p = r.querySelector(".p"); count(p, 0, +p.getAttribute("data-v"), at + 0.2 + k * 0.08, 0.8, 0, "%");
+        });
+        tl.fromTo(id + " .win", { x: 0 }, { x: 24, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, at + 1.1);
+      }
+      candRound("#cand1", A6 + 0.4);
+      tl.fromTo("#s6-ans .w1", { opacity: 0, y: 80, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, A6 + 1.6);
+      tl.to("#cand1", { opacity: 0, y: -20, duration: 0.3 }, A6 + 1.9);
+      candRound("#cand2", A6 + 2.15);
+      tl.fromTo("#s6-ans .w2", { opacity: 0, y: 80, scale: 1.3, filter: "blur(14px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, A6 + 3.35);
+      tl.to("#cand2", { opacity: 0, y: -20, duration: 0.3 }, A6 + 3.6);
+      tl.fromTo("#s6-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut" }, A6 + 3.7);
+      tl.fromTo("#s6-ans", { scale: 1, transformOrigin: "0% 50%" }, { scale: 1.06, duration: 2.6, ease: "sine.out" }, A6 + 3.7);
+      tl.fromTo("#s6-sig", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, A6 + 4.1);
+      tl.fromTo("#blackout", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power1.in" }, END - 0.85);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/SplitText.min.js"></script>
+    <script src="vendor/MorphSVGPlugin.min.js"></script>
+    <script src="vendor/DrawSVGPlugin.min.js"></script>
+    <script src="vendor/MotionPathPlugin.min.js"></script>
+    <script src="vendor/CustomEase.min.js"></script>
+    <script src="vendor/CustomBounce.min.js"></script>
+    <script src="vendor/CustomWiggle.min.js"></script>
+    <script src="assets/kesik.js"></script>
+    <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+
+      /* palette: kraft #f3e6cc · ink #2b211b · cream #fffaf0 · pig #f4a7b0 · clay red #e94f37 · sun #f6c445 */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #f3e6cc; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #f3e6cc; color: #2b211b; }
+      .disp { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.03em; font-kerning: none; }
+      .hand { font-family: "Caveat", cursive; font-weight: 700; }
+      .shot { position: absolute; inset: 0; overflow: hidden; }
+      .paper { background-color: #f3e6cc; background-image: radial-gradient(rgba(120,90,50,0.15) 1.4px, rgba(120,90,50,0) 2px); background-size: 23px 29px; }
+      .outline { color: #fffaf0; -webkit-text-stroke: 16px #2b211b; paint-order: stroke fill; }
+      /* shot 1 */
+      #gl { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+      #t1 { position: absolute; left: 0; right: 0; top: 200px; text-align: center; font-size: 190px; line-height: 0.88; }
+      #t1b { position: absolute; left: 0; right: 0; top: 570px; text-align: center; font-size: 110px; }
+      #t1c { position: absolute; left: 0; right: 0; top: 700px; color: #fffaf0 !important; -webkit-text-stroke: 8px #2b211b; paint-order: stroke fill; text-align: center; font-size: 62px; color: #2b211b; }
+      /* shot 2 */
+      #s2, #s3, #s4 { opacity: 0; }
+      #mwrap { position: absolute; left: 140px; top: 470px; width: 800px; height: 800px; }
+      #fuse { opacity: 0; }
+      #cap2 { position: absolute; left: 80px; right: 80px; top: 1330px; height: 260px; }
+      .cap { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 92px; line-height: 1.02; opacity: 0; }
+      #ring { position: absolute; left: 90px; top: 420px; }
+      #zoomHeart { position: absolute; left: 140px; top: 470px; width: 800px; height: 800px; opacity: 0; }
+      /* shot 3 */
+      #floor { position: absolute; left: 0; right: 0; top: 1250px; height: 670px; background-color: #e9d2a8; border-top: 8px solid #2b211b; }
+      #shadow { position: absolute; left: 400px; top: 1226px; width: 280px; height: 48px; border-radius: 50%; background-color: rgba(70,45,20,0.28); }
+      #pigW { position: absolute; left: 280px; top: 950px; width: 520px; height: 310px; }
+      #pigS { position: absolute; inset: 0; }
+      #pigS svg { overflow: visible; }
+      .puff { position: absolute; width: 90px; height: 90px; border-radius: 50%; background-color: #fffaf0; border: 6px solid #2b211b; opacity: 0; }
+      .note { position: absolute; font-size: 74px; color: #e94f37; opacity: 0; }
+      #h3 { position: absolute; left: 0; right: 0; top: 230px; text-align: center; font-size: 66px; }
+      #na { position: absolute; left: 0; right: 0; top: 380px; text-align: center; font-size: 190px; color: #e94f37; -webkit-text-stroke: 16px #2b211b; paint-order: stroke fill; }
+      /* shot 4 */
+      #logo { position: absolute; left: 0; right: 0; top: 700px; text-align: center; font-size: 220px; }
+      #ul { position: absolute; left: 150px; top: 960px; }
+      #soon { position: absolute; left: 0; right: 0; top: 1060px; text-align: center; font-size: 76px; color: #e94f37; }
+      #follow { position: absolute; left: 330px; top: 1220px; width: 420px; padding: 26px 0; text-align: center; font-size: 60px; background-color: #e94f37; border: 6px solid #2b211b; border-radius: 999px; box-shadow: 10px 12px 0 #2b211b; color: #fffaf0; }
+      #grain { position: absolute; inset: -50%; width: 200%; height: 200%; opacity: 0.12; pointer-events: none;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="vitrin" data-start="0" data-duration="20.6" data-width="1080" data-height="1920">
+      <!-- SHOT 1: Three.js paper diorama -->
+      <div id="s1" class="shot">
+        <canvas id="gl" width="1080" height="1920"></canvas>
+        <h1 id="t1" class="disp outline">DOMUZ<br />SAVAŞI</h1>
+        <div id="t1b" class="disp outline">1859</div>
+        <div id="t1c" class="hand">bir NeAlaka hikâyesi</div>
+      </div>
+      <!-- SHOT 2: MorphSVG -->
+      <div id="s2" class="shot paper" style="opacity:0">
+        <svg id="ring" width="900" height="900" viewBox="0 0 900 900"><path id="ringP" d="" fill="none" stroke="#e94f37" stroke-width="12" stroke-linecap="round"/></svg>
+        <svg id="mwrap" width="800" height="800" viewBox="0 0 800 800">
+          <path id="fuse" d="M380 252 C 380 190, 440 160, 500 140" fill="none" stroke="#2b211b" stroke-width="14" stroke-linecap="round"/>
+          <path id="m" d="M170 430 C 160 330, 250 270, 360 280 L 330 200 L 410 265 C 470 255, 560 260, 620 300 C 690 340, 700 420, 660 480 L 660 560 L 610 560 L 600 510 C 540 530, 420 535, 340 515 L 330 560 L 280 560 L 275 500 C 230 490, 175 470, 170 430 Z" fill="#f4a7b0" stroke="#2b211b" stroke-width="12" stroke-linejoin="round"/>
+          <path id="bomb" d="M380 250 C 495 250, 590 345, 590 460 C 590 575, 495 670, 380 670 C 265 670, 170 575, 170 460 C 170 345, 265 250, 380 250 Z" fill="none"/>
+          <path id="shipP" d="M130 520 L 380 520 L 380 180 L 560 470 L 400 470 L 400 520 L 670 520 L 600 640 L 200 640 Z" fill="none"/>
+          <path id="heart" d="M400 660 C 250 560, 140 470, 160 360 C 180 250, 330 230, 400 330 C 470 230, 620 250, 640 360 C 660 470, 550 560, 400 660 Z" fill="none"/>
+        </svg>
+        <div id="cap2">
+          <div class="cap disp outline" id="c1">Bir domuz…</div>
+          <div class="cap disp outline" id="c2">iki ülkeyi karşı karşıya getirdi.</div>
+          <div class="cap disp outline" id="c3">Gemiler geldi, toplar kuruldu.</div>
+          <div class="cap disp outline" id="c4">Ama tek kurşun atılmadı.</div>
+        </div>
+      </div>
+      <!-- SHOT 3: Disney principles -->
+      <div id="s3" class="shot paper" style="opacity:0">
+        <div id="h3" class="hand">Disney'in animasyon prensipleri, domuz versiyonu:</div>
+        <div id="floor"></div>
+        <div id="shadow"></div>
+        <div class="puff" id="pf0"></div><div class="puff" id="pf1"></div><div class="puff" id="pf2"></div>
+        <div id="pigW"><div id="pigS"><svg width="520" height="310" viewBox="-260 -300 520 310">
+          <defs><filter id="stk" x="-20%" y="-20%" width="140%" height="140%">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="9" result="d"/><feFlood flood-color="#fffaf0"/><feComposite in2="d" operator="in" result="w"/>
+            <feMerge><feMergeNode in="w"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <g filter="url(#stk)">
+            <path id="ptail" d="M-150 -120 q-40 -12 -34 -40 q8 -22 28 -8 q14 14 -6 24" fill="none" stroke="#e48896" stroke-width="10" stroke-linecap="round"/>
+            <g id="plegs" fill="#e48896"><rect x="-110" y="-60" width="36" height="62" rx="14"/><rect x="-58" y="-60" width="36" height="62" rx="14"/><rect x="22" y="-60" width="36" height="62" rx="14"/><rect x="74" y="-60" width="36" height="62" rx="14"/></g>
+            <ellipse cx="0" cy="-110" rx="150" ry="92" fill="#f4a7b0"/>
+            <path id="pearL" d="M86 -196 L 70 -258 L 40 -200 Z" fill="#e48896"/>
+            <path id="pearR" d="M160 -190 L 196 -248 L 128 -214 Z" fill="#e48896"/>
+            <circle cx="128" cy="-150" r="76" fill="#f4a7b0"/>
+            <ellipse cx="188" cy="-136" rx="34" ry="28" fill="#e48896"/>
+            <circle cx="200" cy="-138" r="7" fill="#b25d6a"/><circle cx="176" cy="-138" r="7" fill="#b25d6a"/>
+            <circle cx="148" cy="-176" r="8" fill="#2b211b"/><circle cx="106" cy="-176" r="8" fill="#2b211b"/>
+            <path d="M110 -112 q20 14 40 0" fill="none" stroke="#2b211b" stroke-width="5" stroke-linecap="round"/>
+          </g></svg></div></div>
+        <div class="note hand" id="n0" style="left:120px;top:620px">1. hazırlık</div>
+        <div class="note hand" id="n1" style="left:300px;top:640px">2. esneme → ezilme</div>
+        <div class="note hand" id="n2" style="left:430px;top:760px">3. devam eden hareket</div>
+        <div id="na" class="disp">Ne alaka?</div>
+      </div>
+      <!-- SHOT 4: end card -->
+      <div id="s4" class="shot paper" style="opacity:0">
+        <div id="logo" class="disp">NeAlaka</div>
+        <svg id="ul" width="780" height="80" viewBox="0 0 780 80"><path id="ulp" d="M10 50 C 180 10, 380 70, 560 30 S 760 30, 770 44" fill="none" stroke="#e94f37" stroke-width="16" stroke-linecap="round"/></svg>
+        <div id="soon" class="hand">yeni hikâye geliyor</div>
+        <div id="follow" class="disp">Takip et 🪶</div>
+      </div>
+      <svg id="zoomHeart" width="800" height="800" viewBox="0 0 800 800"><path d="M400 660 C 250 560, 140 470, 160 360 C 180 250, 330 230, 400 330 C 470 230, 620 250, 640 360 C 660 470, 550 560, 400 660 Z" fill="#e94f37"/></svg>
+      <div id="grain"></div>
+      <audio id="snd" src="assets/audio/vitrin.wav" data-start="0" data-duration="20.6" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      gsap.registerPlugin(SplitText, MorphSVGPlugin, DrawSVGPlugin, MotionPathPlugin, CustomEase, CustomBounce, CustomWiggle);
+      const hash = (n, s = 1) => { const x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+      const END = 20.6;
+
+      // ---------------- Three.js paper diorama ----------------
+      const canvas = document.getElementById("gl");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(1080, 1920, false);
+      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(0xf2d7a6, 26, 60);
+      const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 100);
+
+      // sky backdrop (vertical gradient painted on a canvas)
+      const sky = document.createElement("canvas"); sky.width = 16; sky.height = 512;
+      { const g = sky.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, "#5fb2c9"); gr.addColorStop(0.5, "#f6d29a"); gr.addColorStop(1, "#f4b46f"); g.fillStyle = gr; g.fillRect(0, 0, 16, 512); }
+      const skyTex = new THREE.CanvasTexture(sky); skyTex.colorSpace = THREE.SRGBColorSpace;
+      const skyM = new THREE.Mesh(new THREE.PlaneGeometry(90, 120), new THREE.MeshBasicMaterial({ map: skyTex, fog: false }));
+      skyM.position.set(0, 14, -34); scene.add(skyM);
+
+      // a paper layer: wobbly top silhouette, extruded a hair thick so it casts a real shadow
+      function layer(width, baseY, height, bumps, seed, color, z, wave) {
+        const s = new THREE.Shape(), N = 60;
+        s.moveTo(-width / 2, baseY - 12);
+        for (let i = 0; i <= N; i++) {
+          const u = i / N, x = -width / 2 + u * width;
+          let y = baseY + height * (wave ? 0.5 + 0.5 * Math.sin(u * bumps * Math.PI * 2 + seed) : Math.pow(Math.sin(u * Math.PI), 0.6) * (0.55 + 0.45 * Math.sin(u * bumps + seed)));
+          y += (hash(i, seed) - 0.5) * 0.08;
+          s.lineTo(x, y);
+        }
+        s.lineTo(width / 2, baseY - 12); s.lineTo(-width / 2, baseY - 12);
+        const g = new THREE.ExtrudeGeometry(s, { depth: 0.06, bevelEnabled: false });
+        const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, metalness: 0 }));
+        m.position.z = z; m.castShadow = true; m.receiveShadow = true; scene.add(m); return m;
+      }
+      layer(70, 1.0, 7.5, 3.0, 1, 0x86a9c4, -22);
+      layer(56, 0.2, 5.2, 4.0, 2, 0x4f8a66, -15);
+      const seaBack = layer(46, -2.2, 0.55, 7, 3, 0x4f9bb0, -9, true);
+      const island = layer(16, -1.6, 2.1, 1.3, 4, 0xe3c07a, -6.2);
+      const grass = layer(13, -0.9, 1.75, 1.5, 5, 0x7cbf6a, -6.1);
+      const seaMid = layer(40, -3.3, 0.5, 8, 6, 0x438fa8, -4.5, true);
+      const seaFront = layer(30, -4.6, 0.6, 6, 7, 0x3d7f99, -2.4, true);
+      // sun
+      const sun = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 0.06, 48), new THREE.MeshStandardMaterial({ color: 0xf6c445, roughness: 1, emissive: 0x6a4a10 }));
+      sun.rotation.x = Math.PI / 2; sun.position.set(-5, 13, -20); scene.add(sun);
+      // paper trees
+      for (let i = 0; i < 6; i++) {
+        const sh = new THREE.Shape(); sh.moveTo(-0.45, 0); sh.lineTo(0, 1.5 + hash(i, 9) * 0.6); sh.lineTo(0.45, 0); sh.lineTo(-0.45, 0);
+        const t = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: false }), new THREE.MeshStandardMaterial({ color: i % 2 ? 0x3f7a55 : 0x4d8a5e, roughness: 1 }));
+        t.position.set(-4.6 + i * 1.7 + (i > 2 ? 1.6 : 0), 0.4 + hash(i, 3) * 0.3, -6.35 + (i % 2) * 0.05); t.castShadow = true; scene.add(t);
+      }
+      // dust motes
+      const P = 220, pos = new Float32Array(P * 3);
+      for (let i = 0; i < P; i++) { pos[i * 3] = (hash(i, 11) - 0.5) * 22; pos[i * 3 + 1] = hash(i, 12) * 14 - 3; pos[i * 3 + 2] = -hash(i, 13) * 16 + 2; }
+      const dustG = new THREE.BufferGeometry(); dustG.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const dust = new THREE.Points(dustG, new THREE.PointsMaterial({ color: 0xfff6dc, size: 0.07, transparent: true, opacity: 0.8 })); scene.add(dust);
+      // lights
+      scene.add(new THREE.HemisphereLight(0xfff1d6, 0x4a3a28, 1.15));
+      const key = new THREE.DirectionalLight(0xffe2b0, 2.6); key.position.set(-8, 14, 10); key.castShadow = true;
+      key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -16, right: 16, top: 16, bottom: -10, near: 1, far: 60 }); key.shadow.bias = -0.0008; key.shadow.radius = 6;
+      scene.add(key);
+
+      // sprites from SVG (pig, flags, ships) → canvas textures
+      function svgTexture(svg, w, h) {
+        return new Promise((res) => {
+          const img = new Image();
+          img.onload = () => { const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h);
+            const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; res(t); };
+          img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" ' + svg.slice(4));
+        });
+      }
+      function sprite(tex, w, h, x, y, z) {
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h, 24, 1), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 1, side: THREE.DoubleSide }));
+        m.position.set(x, y, z); m.castShadow = true; scene.add(m); return m;
+      }
+      const flagUS = '<svg viewBox="-12 -12 384 244">' + KESIK.flagUS(360, 220) + "</svg>";
+      const flagUK = '<svg viewBox="-12 -12 384 244">' + KESIK.flagUK(360, 220) + "</svg>";
+      const texPromise = Promise.all([
+        svgTexture('<svg viewBox="-250 -270 440 290">' + KESIK.pig({}) + "</svg>", 880, 580),
+        svgTexture(flagUS, 768, 488), svgTexture(flagUK, 768, 488),
+        svgTexture('<svg viewBox="-280 -400 560 460">' + KESIK.ship({}) + "</svg>", 1120, 920),
+      ]);
+      let pig, fUS, fUK, ships = [];
+      const flagBase = [];
+      function waveFlag(mesh, t, ph) {
+        const p = mesh.geometry.attributes.position, b = mesh.userData.base;
+        for (let i = 0; i < p.count; i++) { const x = b[i * 3], u = (x + 0.75) / 1.5; p.setZ(i, Math.sin(u * 5 - t * 5 + ph) * 0.12 * u); }
+        p.needsUpdate = true;
+      }
+      function renderAt(t) {
+        if (!pig) return;
+        // camera: crane down from the sky to the pig on the island (slow in / slow out)
+        const k = gsap.parseEase("power2.inOut")(Math.min(1, t / 6.2));
+        camera.position.set(THREE.MathUtils.lerp(0, 0.8, k), THREE.MathUtils.lerp(7.5, 0.9, k), THREE.MathUtils.lerp(16, 1.6, k));
+        camera.lookAt(THREE.MathUtils.lerp(0, 0.5, k), THREE.MathUtils.lerp(1.5, 0.1, k), -6);
+        seaBack.position.x = Math.sin(t * 0.8) * 0.25; seaMid.position.x = Math.sin(t * 0.9 + 1) * -0.3; seaFront.position.x = Math.sin(t * 1.1 + 2) * 0.35;
+        ships.forEach((s, i) => { s.position.y = -1.0 + Math.sin(t * 1.6 + i * 2) * 0.08; s.rotation.z = Math.sin(t * 1.3 + i) * 0.04; });
+        pig.position.y = -0.05 + Math.abs(Math.sin(t * 3.2)) * 0.12; pig.rotation.z = Math.sin(t * 3.2) * 0.04;
+        waveFlag(fUS, t, 0); waveFlag(fUK, t, 1.4);
+        const dp = dustG.attributes.position;
+        for (let i = 0; i < P; i++) { dp.setY(i, pos[i * 3 + 1] + Math.sin(t * 0.6 + i) * 0.25 + t * 0.05); dp.setX(i, pos[i * 3] + Math.cos(t * 0.4 + i * 1.7) * 0.2); }
+        dp.needsUpdate = true;
+        renderer.render(scene, camera);
+      }
+
+      // ---------------- build the timeline once fonts + textures are ready ----------------
+      Promise.all([document.fonts.ready, texPromise]).then(([, tex]) => {
+        const [tPig, tUS, tUK, tShip] = tex;
+        pig = sprite(tPig, 2.2, 1.45, 0.6, -0.05, -5.6);
+        for (let i = 0; i < 2; i++) ships.push(sprite(tShip, 2.6, 2.14, -7 + i * 13, -1.0, -8.6));
+        fUS = sprite(tUS, 1.5, 0.95, -2.2, 1.85, -5.9); fUK = sprite(tUK, 1.5, 0.95, 3.6, 1.85, -5.9);
+        [fUS, fUK].forEach((f) => { f.userData.base = Float32Array.from(f.geometry.attributes.position.array);
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.4), new THREE.MeshStandardMaterial({ color: 0x5a3b2c }));
+          pole.position.set(f.position.x - 0.78, 1.0, f.position.z); pole.castShadow = true; scene.add(pole); });
+
+        const tl = gsap.timeline({ paused: true });
+        const renders = [];
+        tl.eventCallback("onUpdate", () => { const t = tl.time(); if (t < 7) renderAt(t); renders.forEach((r) => r(t)); });
+        window.addEventListener("hf-seek", (e) => { if (e.detail.time < 7) renderAt(e.detail.time); });
+        renders.push((t) => { const st = Math.floor(t * 12); gsap.set("#grain", { x: (hash(st, 7) - 0.5) * 200, y: (hash(st, 8) - 0.5) * 200 }); });
+
+        // deterministic scramble (ScrambleText uses Math.random, which breaks frame-exact renders)
+        function scramble(el, text, at, dur) {
+          const chars = "0123456789#%&?!", o = { p: 0 };
+          tl.fromTo(o, { p: 0 }, { p: 1, duration: dur, ease: "none", onUpdate: () => {
+            const n = Math.floor(o.p * text.length), f = Math.floor(tl.time() * 20);
+            el.textContent = text.slice(0, n) + Array.from(text.slice(n), (c, i) => (c === " " ? " " : chars[Math.floor(hash(f + i * 7, 3) * chars.length)])).join("");
+          } }, at);
+        }
+
+        // ---- SHOT 1 (0–6.6): diorama + SplitText title
+        const t1 = SplitText.create("#t1", { type: "chars" });
+        tl.fromTo(t1.chars, { y: -260, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7, ease: "bounce.out", stagger: { each: 0.06, from: "center" } }, 1.2);
+        t1.chars.forEach((c, i) => tl.fromTo(c, { rotation: (hash(i, 4) - 0.5) * 50 }, { rotation: (hash(i, 5) - 0.5) * 8, duration: 0.7, ease: "back.out(2)", immediateRender: false }, 1.2 + Math.abs(i - 5.5) * 0.06));
+        tl.fromTo("#t1b", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.4);
+        document.getElementById("t1b").textContent = "????";
+        scramble(document.getElementById("t1b"), "1859", 2.4, 1.0);
+        tl.fromTo("#t1c", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.4);
+        tl.to(["#t1", "#t1b", "#t1c"], { y: -120, opacity: 0, duration: 0.5, ease: "power2.in", stagger: 0.05 }, 5.2);
+
+        // ---- transition: iris opens from the pig
+        tl.set("#s2", { opacity: 1 }, 6.0);
+        tl.fromTo("#s2", { clipPath: "circle(0% at 55% 52%)" }, { clipPath: "circle(140% at 55% 52%)", duration: 0.75, ease: "power3.in", immediateRender: false }, 6.0);
+        tl.set("#s1", { opacity: 0 }, 6.8);
+
+        // ---- SHOT 2 (6.0–12.4): MorphSVG + masked word reveals + DrawSVG ring
+        const caps = ["#c1", "#c2", "#c3", "#c4"].map((s) => SplitText.create(s, { type: "words", mask: "words" }));
+        const capT = [6.5, 7.7, 9.2, 10.7];
+        caps.forEach((sp, i) => {
+          tl.set("#c" + (i + 1), { opacity: 1 }, capT[i]);
+          tl.fromTo(sp.words, { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out", stagger: 0.07, immediateRender: false }, capT[i]);
+          if (i < 3) tl.to(sp.words, { yPercent: -110, duration: 0.3, ease: "power2.in", stagger: 0.03 }, capT[i + 1] - 0.35);
+        });
+        tl.set("#c2,#c3,#c4", { opacity: 0 }, 0);
+        tl.fromTo("#m", { scale: 0.4, rotation: -10, transformOrigin: "50% 50%" }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)", immediateRender: false }, 6.3);
+        tl.to("#m", { morphSVG: { shape: "#bomb", type: "rotational" }, fill: "#3a3a40", duration: 0.7, ease: "power3.inOut" }, 7.6);
+        tl.fromTo("#fuse", { opacity: 1, drawSVG: "0%" }, { opacity: 1, drawSVG: "100%", duration: 0.4, ease: "power2.out", immediateRender: false }, 8.2);
+        tl.to("#fuse", { opacity: 0, duration: 0.15 }, 9.0);
+        tl.to("#m", { morphSVG: { shape: "#shipP", type: "rotational" }, fill: "#5a3b2c", duration: 0.7, ease: "power3.inOut" }, 9.1);
+        tl.to("#m", { rotation: 4, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 1, transformOrigin: "50% 80%" }, 9.8);
+        tl.to("#m", { morphSVG: { shape: "#heart", type: "rotational" }, fill: "#e94f37", duration: 0.7, ease: "power3.inOut" }, 10.6);
+        tl.to("#m", { scale: 1.08, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 3, transformOrigin: "50% 50%" }, 11.3);
+        // hand-drawn wobble ring, drawn on then erased
+        let d = "", N = 40;
+        for (let i = 0; i <= N + 6; i++) { const a = i / N * Math.PI * 2 - 1.2, r = 380 + (hash(i % N, 6) - 0.5) * 30 + i * 0.9; d += (i ? " L" : "M") + (450 + Math.cos(a) * r).toFixed(1) + " " + (450 + Math.sin(a) * r * 0.96).toFixed(1); }
+        document.getElementById("ringP").setAttribute("d", d);
+        tl.fromTo("#ringP", { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: 0.8, ease: "power2.inOut" }, 7.7);
+        tl.to("#ringP", { drawSVG: "100% 100%", duration: 0.5, ease: "power2.in" }, 8.9);
+        // ---- transition: zoom through the heart
+        tl.set("#zoomHeart", { opacity: 1 }, 11.95);
+        tl.fromTo("#zoomHeart", { scale: 1, transformOrigin: "50% 60%" }, { scale: 14, duration: 0.55, ease: "power3.in", immediateRender: false }, 11.95);
+        tl.set("#s3", { opacity: 1 }, 12.5); tl.set("#s2", { opacity: 0 }, 12.5);
+        tl.to("#zoomHeart", { opacity: 0, duration: 0.3 }, 12.5);
+
+        // ---- SHOT 3 (12.5–17.6): squash & stretch, anticipation, arcs, follow-through, secondary action
+        CustomWiggle.create("tailWiggle", { wiggles: 6, type: "easeOut" });
+        tl.fromTo("#h3", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, 12.6);
+        const X = [-760, -380, -120, 0], H = [12.8, 13.9, 15.0];
+        tl.set("#pigW", { x: X[0], y: 0 }, 0); tl.set("#shadow", { x: X[0] }, 0);
+        H.forEach((h, k) => {
+          const x0 = X[k], x1 = X[k + 1];
+          tl.to("#pigS", { scaleX: 1.18, scaleY: 0.8, transformOrigin: "50% 100%", duration: 0.14, ease: "power2.out" }, h);                // anticipation
+          tl.to("#pigS", { scaleX: 0.86, scaleY: 1.18, duration: 0.1, ease: "power2.out" }, h + 0.14);                                      // stretch on take-off
+          tl.to("#pigW", { motionPath: { path: [{ x: x0, y: 0 }, { x: (x0 + x1) / 2, y: -300 }, { x: x1, y: 0 }], curviness: 1.4 }, duration: 0.55, ease: "sine.inOut" }, h + 0.14); // arc
+          tl.to("#pigW", { rotation: -8, duration: 0.27, ease: "sine.out", yoyo: true, repeat: 1, transformOrigin: "50% 100%" }, h + 0.14);
+          tl.to("#pigS", { scaleX: 1, scaleY: 1, duration: 0.2, ease: "sine.out" }, h + 0.3);
+          tl.to("#pigS", { scaleX: 1.25, scaleY: 0.76, duration: 0.06, ease: "power2.in" }, h + 0.69);                                      // squash on landing
+          tl.to("#pigS", { scaleX: 0.95, scaleY: 1.07, duration: 0.12, ease: "power2.out" }, h + 0.75);
+          tl.to("#pigS", { scaleX: 1, scaleY: 1, duration: 0.3, ease: "elastic.out(1,0.45)" }, h + 0.87);
+          tl.to(["#pearL", "#pearR"], { rotation: -26, svgOrigin: "100 -200", duration: 0.15, ease: "power2.out" }, h + 0.22);               // follow-through
+          tl.to(["#pearL", "#pearR"], { rotation: 22, svgOrigin: "100 -200", duration: 0.12, ease: "power2.in" }, h + 0.72);
+          tl.to(["#pearL", "#pearR"], { rotation: 0, svgOrigin: "100 -200", duration: 0.6, ease: "elastic.out(1,0.3)" }, h + 0.84);
+          tl.fromTo("#ptail", { rotation: 0 }, { rotation: 35, svgOrigin: "-150 -120", duration: 0.8, ease: "tailWiggle", immediateRender: false }, h + 0.72);
+          tl.to("#shadow", { x: (x0 + x1) / 2, scale: 0.5, opacity: 0.45, duration: 0.3, ease: "sine.out" }, h + 0.14);                    // secondary: shadow
+          tl.to("#shadow", { x: x1, scale: 1, opacity: 1, duration: 0.3, ease: "sine.in" }, h + 0.44);
+          [0, 1, 2].forEach((j) => {
+            tl.fromTo("#pf" + j, { x: 450 + x1 + (j - 1) * 150, y: 1180, scale: 0.2, opacity: 0.9 }, { x: 450 + x1 + (j - 1) * 230, y: 1150 - j * 10, scale: 1.2, opacity: 0, duration: 0.45, ease: "power2.out", immediateRender: false }, h + 0.72);
+          });
+          tl.fromTo("#n" + k, { opacity: 0, scale: 0.6, rotation: -6 }, { opacity: 1, scale: 1, rotation: -3, duration: 0.3, ease: "back.out(2.5)", immediateRender: false }, h - 0.05);
+          tl.to("#n" + k, { opacity: 0, duration: 0.25 }, h + 1.0);
+        });
+        tl.set(".puff", { opacity: 0 }, 0);
+        tl.to("#h3", { opacity: 0, y: -30, duration: 0.3 }, 16.0);
+        const na = SplitText.create("#na", { type: "chars" });
+        tl.fromTo(na.chars, { y: -500, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: CustomBounce.create("naBounce", { strength: 0.6, squash: 2 }), stagger: 0.05, immediateRender: false }, 16.2);
+        tl.set(na.chars, { opacity: 0 }, 0);
+        tl.to("#pigS", { scaleY: 1.12, scaleX: 0.9, duration: 0.15, yoyo: true, repeat: 3, ease: "sine.inOut", transformOrigin: "50% 100%" }, 16.4);
+
+        // ---- SHOT 4 (17.6–20.6): end card
+        tl.set("#s4", { opacity: 1 }, 17.6);
+        tl.fromTo("#s4", { clipPath: "circle(0% at 50% 60%)" }, { clipPath: "circle(140% at 50% 60%)", duration: 0.6, ease: "power3.in", immediateRender: false }, 17.6);
+        tl.set("#s3", { opacity: 0 }, 18.3);
+        const lg = SplitText.create("#logo", { type: "chars" });
+        tl.fromTo(lg.chars, { yPercent: 120, rotation: 12, opacity: 0 }, { yPercent: 0, rotation: 0, opacity: 1, duration: 0.6, ease: "back.out(2.2)", stagger: 0.05, immediateRender: false }, 17.9);
+        tl.set(lg.chars, { opacity: 0 }, 0);
+        tl.fromTo("#ulp", { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.6, ease: "power2.inOut", immediateRender: false }, 18.4);
+        tl.set("#ulp", { drawSVG: "0%" }, 0);
+        tl.fromTo("#soon", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, 18.8);
+        tl.fromTo("#follow", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2.5)", immediateRender: false }, 19.1);
+        tl.to("#follow", { scale: 1.07, duration: 0.3, yoyo: true, repeat: 1, ease: "sine.inOut" }, 19.7);
+
+        renderAt(0);
+        window.__timelines["vitrin"] = tl;
+      });
+    </script>
+  </body>
+</html>

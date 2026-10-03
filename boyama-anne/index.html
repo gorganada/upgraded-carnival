@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="tr" data-composition-variables='[
+  {"id":"marka","type":"string","label":"Marka","default":"Boyama Kitabım"},
+  {"id":"cocuk","type":"string","label":"Çocuğun adı","default":"Ela"},
+  {"id":"cocuk_iyelik","type":"string","label":"Ad + iyelik eki (büyük harf)","default":"ELA&#39;NIN"},
+  {"id":"evcil","type":"string","label":"Evcil hayvan","default":"Pamuk"},
+  {"id":"kampanya","type":"string","label":"Kampanya rozeti","default":"23 Nisan&#39;a özel"},
+  {"id":"yorum","type":"string","label":"Gerçek müşteri yorumu (boşsa yer tutucu görünür)","default":""},
+  {"id":"yorum_kisi","type":"string","label":"Yorumu yapan","default":""},
+  {"id":"guven","type":"string","label":"Fotoğraf güvenliği notu (boşsa yer tutucu)","default":""}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/SplitText.min.js"></script>
+    <script src="vendor/MorphSVGPlugin.min.js"></script>
+    <script src="vendor/DrawSVGPlugin.min.js"></script>
+    <script src="vendor/MotionPathPlugin.min.js"></script>
+    <script src="assets/art.js"></script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      /* warm craft: paper #fbf6ec · ink #231c18 · red #e94f37 · yellow #f6c445 · blue #3f88c5 · green #44bba4 · pink #f49cbb */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #fbf6ec; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #fbf6ec; color: #231c18; }
+      .sec { position: absolute; inset: 0; overflow: hidden; background-color: #fbf6ec;
+        background-image: radial-gradient(rgba(35,28,24,0.12) 2.5px, rgba(35,28,24,0) 3px); background-size: 36px 36px; }
+      .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; font-kerning: none; }
+      .hand { font-family: "Caveat", cursive; font-weight: 700; }
+      .mono { font-family: "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+      .top { position: absolute; left: 90px; right: 90px; top: 200px; text-align: center; font-size: 96px; }
+      .bot { position: absolute; left: 70px; right: 70px; top: 1470px; text-align: center; font-size: 84px; }
+      .mark { position: relative; display: inline-block; isolation: isolate; white-space: nowrap; }
+      .mark .bar { position: absolute; left: -12px; right: -12px; bottom: 4px; height: 40%; background-color: #f6c445; border-radius: 10px; transform-origin: left center; }
+      .mark .t { position: relative; }
+      /* S1 polaroid */
+      #pol { position: absolute; left: 170px; top: 520px; width: 740px; height: 860px; background-color: #fffdf8; border: 6px solid #231c18; border-radius: 10px; box-shadow: 16px 20px 0 #231c18; }
+      #photo { position: absolute; left: 32px; top: 32px; width: 664px; height: 664px; overflow: hidden; border: 5px solid #231c18; }
+      #photo svg { position: absolute; left: 0; top: 0; }
+      #colorL { position: absolute; inset: 0; }
+      #tint { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255,214,150,0.12) 40%, rgba(60,30,10,0.38) 100%); }
+      #scan { position: absolute; left: -20px; right: -20px; top: 0; height: 16px; background-color: #f6c445; border: 3px solid #231c18; border-radius: 8px; }
+      #capt { position: absolute; left: 0; right: 0; top: 724px; text-align: center; font-size: 74px; }
+      /* S2 book + kid */
+      #s2, #s3, #s4, #s5 { opacity: 0; }
+      #book { position: absolute; left: 110px; top: 560px; width: 560px; height: 760px; }
+      .pg { position: absolute; inset: 0; border: 7px solid #231c18; border-radius: 10px 24px 24px 10px; overflow: hidden; }
+      #inner { background-color: #fffdf8; }
+      #inner .nm { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font-size: 72px; }
+      #cover { background-color: #3f88c5; box-shadow: 14px 16px 0 #231c18; }
+      #cover .ttl { position: absolute; left: 40px; right: 30px; top: 40px; font-size: 76px; color: #fffdf8; line-height: 0.92; }
+      #kidW { position: absolute; left: 650px; top: 930px; width: 380px; height: 420px; }
+      #kidS { position: absolute; inset: 0; filter: drop-shadow(10px 12px 0 rgba(35,28,24,0.25)); }
+      #bubble { position: absolute; left: 600px; top: 560px; padding: 22px 34px; background-color: #fffdf8; border: 7px solid #231c18; border-radius: 40px; font-size: 92px; color: #e94f37; box-shadow: 10px 12px 0 #231c18; }
+      .spk { position: absolute; width: 70px; height: 70px; }
+      /* S3 phone → crayon, then colouring */
+      #ph { position: absolute; left: 290px; top: 470px; }
+      #pageW { position: absolute; left: 170px; top: 450px; width: 740px; height: 860px; background-color: #fffdf8; border: 6px solid #231c18; border-radius: 10px; box-shadow: 16px 20px 0 #231c18; opacity: 0; }
+      #page2 { position: absolute; left: 32px; top: 32px; }
+      #crayon { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+      #crw { position: absolute; left: 0; top: 0; }
+      #crayon svg { position: absolute; left: -30px; top: -300px; transform: rotate(35deg); transform-origin: 30px 300px; }
+      #chips { position: absolute; left: 60px; right: 60px; top: 1430px; display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; }
+      .chip { padding: 16px 30px; border: 6px solid #231c18; border-radius: 999px; background-color: #fffdf8; font-size: 50px; box-shadow: 8px 10px 0 #231c18; }
+      /* S4 trust */
+      #card { position: absolute; left: 100px; right: 100px; top: 700px; padding: 56px 50px; background-color: #fffdf8; border: 7px solid #231c18; border-radius: 34px; box-shadow: 14px 16px 0 #231c18; }
+      #card.ph { border-style: dashed; }
+      #stars { display: flex; gap: 14px; justify-content: center; margin-bottom: 30px; }
+      #qtext { text-align: center; font-size: 74px; line-height: 1.05; }
+      #qwho { margin-top: 26px; text-align: center; font-size: 30px; color: #8a7a6c; }
+      #trust { position: absolute; left: 90px; right: 90px; top: 1400px; display: flex; align-items: center; justify-content: center; gap: 22px; font-size: 54px; }
+      #trust svg { flex: none; }
+      /* S5 CTA */
+      #brand { position: absolute; left: 0; right: 0; top: 460px; text-align: center; font-size: 120px; }
+      #steps { position: absolute; left: 60px; right: 60px; top: 760px; display: flex; justify-content: space-between; align-items: center; }
+      .step { width: 270px; text-align: center; }
+      .step .n { width: 150px; height: 150px; margin: 0 auto 18px; border-radius: 50%; border: 7px solid #231c18; display: flex; align-items: center; justify-content: center; font-size: 84px; box-shadow: 8px 10px 0 #231c18; }
+      .step .l { font-size: 50px; }
+      .arr { width: 70px; }
+      #stamp { position: absolute; left: 240px; top: 1170px; padding: 10px 34px; border: 9px solid #e94f37; color: #e94f37; border-radius: 22px; font-size: 92px; }
+      #cta { position: absolute; left: 150px; right: 150px; top: 1440px; padding: 34px 0; text-align: center; background-color: #e94f37; color: #fffdf8; border: 7px solid #231c18; border-radius: 999px; font-size: 64px; box-shadow: 12px 14px 0 #231c18; }
+      #slices { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+      .sl { position: absolute; left: 0; width: 1080px; transform-origin: left center; transform: scaleX(0); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="anne" data-start="0" data-duration="20" data-width="1080" data-height="1920">
+      <!-- S1 hook: direct question + photo turns into a page from frame 1 -->
+      <div id="s1" class="sec">
+        <h1 class="top big" id="q" style="top:150px;font-size:88px;left:60px;right:60px">Çocuğunuz kendini hiç bir kitapta gördü mü?</h1>
+        <div id="pol"><div id="photo">
+          <svg id="lineL" width="664" height="664" viewBox="0 0 680 680"></svg>
+          <div id="colorL"><svg id="photoL" width="664" height="664" viewBox="0 0 680 680"></svg><div id="tint"></div></div>
+          <div id="scan"></div></div><div id="capt" class="hand"></div></div>
+        <div class="bot big" id="c1a">Sizin fotoğrafınızdan…</div>
+        <div class="bot big" id="c1b" style="opacity:0"><span class="mark"><span class="bar" id="c1bar"></span><span class="t">onun boyama sayfasına.</span></span></div>
+      </div>
+      <!-- S2 the "that's me!" moment -->
+      <div id="s2" class="sec" style="opacity:0">
+        <h2 class="top big" id="t2">Ve o an…</h2>
+        <div id="book">
+          <div class="pg" id="inner"><svg width="546" height="600" viewBox="-230 -150 460 505" style="position:absolute;left:0;top:40px">__KIDLINE__</svg><div class="nm hand" id="nm"></div></div>
+          <div class="pg" id="cover"><div class="ttl big" id="ctt"></div><svg width="420" height="460" viewBox="-230 -150 460 505" style="position:absolute;left:70px;top:270px">__KIDCOVER__</svg></div>
+        </div>
+        <div id="kidW"><div id="kidS"><svg width="380" height="420" viewBox="-230 -150 460 505">__KIDSTICKER__</svg></div></div>
+        <div id="bubble" class="big">BU BENİM!</div>
+        <div id="spks"></div>
+        <div class="bot big" id="c2">kendini <span style="color:#e94f37">kahraman</span> olarak görüyor.</div>
+      </div>
+      <!-- S3 screen guilt → crayon, colouring + benefits -->
+      <div id="s3" class="sec" style="opacity:0">
+        <h2 class="top big" id="t3a">Ekran yok.</h2>
+        <h2 class="top big" id="t3b" style="opacity:0">Kendini boyuyor.</h2>
+        <svg id="ph" width="500" height="760" viewBox="0 0 500 760">
+          <path id="phone" d="M130 40 L 370 40 Q 420 40 420 90 L 420 670 Q 420 720 370 720 L 130 720 Q 80 720 80 670 L 80 90 Q 80 40 130 40 Z" fill="#231c18"/>
+          <path id="phx" d="M120 120 L 380 640 M380 120 L 120 640" stroke="#e94f37" stroke-width="34" stroke-linecap="round" fill="none"/>
+          <path id="cray" d="M200 40 L 300 40 L 300 560 L 250 720 L 200 560 Z" fill="none"/>
+        </svg>
+        <div id="pageW"><svg id="page2" width="664" height="664" viewBox="0 0 680 680"></svg><div class="hand" style="position:absolute;left:0;right:0;top:720px;text-align:center;font-size:70px" id="capt2"></div></div>
+        <div id="crayon"><div id="crw"><svg width="60" height="300" viewBox="0 0 60 300">
+          <rect x="6" y="0" width="48" height="262" rx="8" id="crBody" fill="#e94f37" stroke="#231c18" stroke-width="6"/>
+          <rect x="6" y="60" width="48" height="120" fill="#fffdf8" stroke="#231c18" stroke-width="6"/>
+          <path d="M8 260 L52 260 L30 298 Z" id="crTip" fill="#e94f37" stroke="#231c18" stroke-width="6" stroke-linejoin="round"/></svg></div></div>
+        <div class="bot big" id="c3a">15 dakika <span style="color:#e94f37">huzur.</span></div>
+        <div id="chips" style="opacity:0"><span class="chip big" id="ch0">ince motor beceri</span><span class="chip big" id="ch1">odaklanma</span><span class="chip big" id="ch2">hayal gücü</span></div>
+      </div>
+      <!-- S4 trust -->
+      <div id="s4" class="sec" style="opacity:0">
+        <h2 class="top big" id="t4">Aileler ne diyor?</h2>
+        <div id="card"><div id="stars"></div><div id="qtext" class="hand"></div><div id="qwho" class="mono"></div></div>
+        <div id="trust" class="big"><svg width="70" height="84" viewBox="0 0 70 84"><path d="M15 38 V 24 A 20 20 0 0 1 55 24 V 38" fill="none" stroke="#231c18" stroke-width="8"/><rect x="5" y="36" width="60" height="44" rx="10" fill="#44bba4" stroke="#231c18" stroke-width="6"/></svg><span id="trustT"></span></div>
+      </div>
+      <!-- S5 CTA -->
+      <div id="s5" class="sec" style="opacity:0">
+        <div id="brand" class="big"></div>
+        <div id="steps">
+          <div class="step" id="st0"><div class="n big" style="background-color:#f6c445">1</div><div class="l big">fotoğraf yükle</div></div>
+          <svg class="arr" viewBox="0 0 70 40" height="40"><path class="ar" d="M5 20 H 60 M45 6 L 62 20 L 45 34" fill="none" stroke="#231c18" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="step" id="st1"><div class="n big" style="background-color:#f49cbb">2</div><div class="l big">hikâye seç</div></div>
+          <svg class="arr" viewBox="0 0 70 40" height="40"><path class="ar" d="M5 20 H 60 M45 6 L 62 20 L 45 34" fill="none" stroke="#231c18" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="step" id="st2"><div class="n big" style="background-color:#44bba4">3</div><div class="l big">kapında</div></div>
+        </div>
+        <div id="stamp" class="big"></div>
+        <div id="cta" class="big">Fotoğrafını yükle →</div>
+      </div>
+      <div id="slices"></div>
+      <audio id="snd" src="assets/audio/anne.wav" data-start="0" data-duration="20" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      (function () {
+        var V = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+        var MARKA = V.marka || "Boyama Kitabım", AD = V.cocuk || "Ela", ADI = V.cocuk_iyelik || "ELA'NIN", EVCIL = V.evcil || "Pamuk";
+        var KAMP = V.kampanya || "23 Nisan'a özel", YORUM = V.yorum || "", KISI = V.yorum_kisi || "", GUVEN = V.guven || "";
+        function hash(n, s) { var x = Math.sin(n * 127.1 + (s || 1) * 311.7) * 43758.5453; return x - Math.floor(x); }
+        var B = 0.5, CRAYON = ["#e94f37", "#f6c445", "#3f88c5", "#44bba4", "#f49cbb"];
+
+        // --- art ---
+        function scene(p) {
+          return '<rect class="rg" id="' + p + '-sky" data-c="#bfe3f7" x="0" y="0" width="680" height="680" fill="#fffdf8" stroke="none"/>' +
+            '<circle class="rg" id="' + p + '-sun" data-c="#f6c445" cx="560" cy="120" r="58" fill="#fffdf8" stroke="#231c18" stroke-width="7"/>' +
+            '<path d="M560 34 V10 M560 206 V230 M474 120 H450 M646 120 H670 M500 60 L484 44 M620 60 L636 44 M500 180 L484 196 M620 180 L636 196" stroke="#231c18" stroke-width="7" stroke-linecap="round"/>' +
+            '<path class="rg" id="' + p + '-grass" data-c="#7cc46b" d="M-10 470 Q170 420 340 462 T690 452 L690 690 L-10 690 Z" fill="#fffdf8" stroke="#231c18" stroke-width="7"/>' +
+            '<g transform="translate(220 300) scale(0.78)">' + ART.kid(p + "-kid") + "</g>" + '<g transform="translate(510 452) scale(0.55)">' + ART.dog(p + "-dog") + "</g>";
+        }
+        document.getElementById("lineL").innerHTML = scene("L");
+        document.getElementById("photoL").innerHTML = scene("P");
+        var photo = document.getElementById("photoL"); ART.paint(photo);
+        photo.querySelectorAll("[stroke]").forEach(function (e) { e.setAttribute("stroke", "rgba(35,28,24,0.22)"); e.setAttribute("stroke-width", "3"); });
+        document.getElementById("page2").innerHTML = scene("Q");
+        document.getElementById("capt").textContent = AD + " & " + EVCIL + " ♥";
+        document.getElementById("capt2").textContent = AD + " kendini boyuyor";
+        var s2 = document.getElementById("s2");
+        s2.innerHTML = s2.innerHTML.replace("__KIDLINE__", ART.kid("in")).replace("__KIDCOVER__", ART.kid("cv")).replace("__KIDSTICKER__", ART.kid("st"));
+        ART.paint(document.querySelector("#cover svg")); ART.paint(document.querySelector("#kidS svg"));
+        document.getElementById("ctt").textContent = ADI + " BOYAMA KİTABI";
+        document.getElementById("nm").textContent = AD + ", sayfa 1";
+        document.getElementById("brand").textContent = MARKA;
+        document.getElementById("stamp").textContent = KAMP;
+        // testimonial + trust: real copy only. Empty variables render an explicit placeholder.
+        var card = document.getElementById("card");
+        if (YORUM) { document.getElementById("qtext").textContent = "“" + YORUM + "”"; document.getElementById("qwho").textContent = KISI ? "— " + KISI : ""; }
+        else { card.classList.add("ph"); document.getElementById("qtext").textContent = "Buraya gerçek bir müşteri yorumu gelecek"; document.getElementById("qwho").textContent = "[ YER TUTUCU · DEĞİŞKEN: yorum ]"; }
+        document.getElementById("trustT").textContent = GUVEN || "[ fotoğraf güvenliği notunuz ]";
+        var stars = document.getElementById("stars");
+        for (var i = 0; i < 5; i++) stars.innerHTML += '<svg class="st" width="70" height="70" viewBox="-35 -35 70 70"><path class="star" d="M0 -30 L9 -10 L30 -8 L14 6 L19 28 L0 16 L-19 28 L-14 6 L-30 -8 L-9 -10 Z" fill="' + (YORUM ? "#f6c445" : "#e8dccb") + '" stroke="#231c18" stroke-width="5" stroke-linejoin="round"/></svg>';
+        var spk = document.getElementById("spks");
+        for (i = 0; i < 7; i++) { var d = document.createElement("div"); d.className = "spk"; d.id = "sp" + i; d.style.left = (620 + hash(i, 2) * 380) + "px"; d.style.top = (820 + hash(i, 3) * 380) + "px";
+          d.innerHTML = '<svg width="70" height="70" viewBox="-35 -35 70 70"><path d="M0 -32 L8 -8 L32 0 L8 8 L0 32 L-8 8 L-32 0 L-8 -8 Z" fill="' + CRAYON[i % 5] + '" stroke="#231c18" stroke-width="4" stroke-linejoin="round"/></svg>'; spk.appendChild(d); }
+        var sl = document.getElementById("slices");
+        for (i = 0; i < 7; i++) { var e = document.createElement("div"); e.className = "sl"; e.id = "sl" + i; e.style.top = (i * 280 + 30) + "px"; e.style.height = (50 + hash(i, 9) * 110) + "px"; sl.appendChild(e); }
+
+        function build() {
+          gsap.registerPlugin(SplitText, MorphSVGPlugin, DrawSVGPlugin, MotionPathPlugin);
+          var tl = gsap.timeline({ paused: true });
+          // cuts on the downbeat with crayon slices
+          [[4, "#s2"], [8, "#s3"], [13, "#s4"], [16.5, "#s5"]].forEach(function (c, n) {
+            var t = c[0];
+            tl.set(c[1], { opacity: 1 }, t); tl.set("#s" + (n + 1), { opacity: 0 }, t);
+            for (var k = 0; k < 7; k++) {
+              var id = "#sl" + k;
+              tl.set(id, { backgroundColor: CRAYON[(n + k) % 5], transformOrigin: k % 2 ? "right center" : "left center" }, t - 0.1);
+              tl.fromTo(id, { scaleX: 0 }, { scaleX: 1, duration: 0.06, ease: "power4.in", immediateRender: false }, t - 0.1 + k * 0.006);
+              tl.to(id, { scaleX: 0, transformOrigin: k % 2 ? "left center" : "right center", duration: 0.09, ease: "power4.out" }, t + 0.02 + k * 0.008);
+            }
+          });
+
+          // S1: frame 0 already shows the question and the photo; motion starts immediately
+          var qs = SplitText.create("#q", { type: "words" });
+          tl.fromTo(qs.words, { scale: 1 }, { scale: 1.08, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out", stagger: 0.06, transformOrigin: "50% 80%" }, 0.05);
+          tl.fromTo("#pol", { rotation: -3 }, { rotation: 1, duration: 3.6, ease: "sine.inOut" }, 0);
+          tl.fromTo("#scan", { y: -8 }, { y: 656, duration: 1.6, ease: "power1.inOut" }, 0.4);
+          tl.fromTo("#colorL", { clipPath: "inset(0px 0px 0px 0px)" }, { clipPath: "inset(664px 0px 0px 0px)", duration: 1.6, ease: "power1.inOut" }, 0.4);
+          tl.to("#scan", { opacity: 0, duration: 0.15 }, 2.0);
+          tl.to("#c1a", { opacity: 0, y: -30, duration: 0.2 }, 2.4);
+          tl.set("#c1b", { opacity: 1 }, 2.5);
+          tl.fromTo("#c1b", { y: 40 }, { y: 0, duration: 0.35, ease: "back.out(2)", immediateRender: false }, 2.5);
+          tl.fromTo("#c1bar", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 2.8);
+          tl.fromTo("#c1a", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.9);
+
+          // S2: the book opens, the child sees herself
+          tl.fromTo("#t2", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, 4.05);
+          tl.fromTo("#cover", { rotationY: 0, transformPerspective: 2200, transformOrigin: "0% 50%" }, { rotationY: -165, duration: 0.8, ease: "power3.inOut" }, 4.5);
+          tl.set("#cover", { opacity: 0 }, 4.95);
+          tl.fromTo("#kidW", { x: 600 }, { x: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, 4.1);
+          tl.set("#kidW", { x: 600 }, 0);
+          tl.to("#kidS", { scaleX: 1.15, scaleY: 0.82, transformOrigin: "50% 100%", duration: 0.15, ease: "power2.out" }, 5.5);   // anticipation
+          tl.to("#kidS", { scaleX: 0.9, scaleY: 1.15, duration: 0.1 }, 5.65);
+          tl.to("#kidW", { y: -200, duration: 0.3, ease: "power2.out" }, 5.65);
+          tl.to("#kidS", { scaleX: 1, scaleY: 1, duration: 0.15 }, 5.75);
+          tl.to("#kidW", { y: 0, duration: 0.25, ease: "power2.in" }, 5.95);
+          tl.to("#kidS", { scaleX: 1.22, scaleY: 0.8, duration: 0.06, ease: "power2.in" }, 6.2);
+          tl.to("#kidS", { scaleX: 1, scaleY: 1, duration: 0.35, ease: "elastic.out(1,0.4)" }, 6.26);
+          tl.fromTo("#bubble", { scale: 0, rotation: -12, transformOrigin: "20% 100%" }, { scale: 1, rotation: -4, duration: 0.4, ease: "back.out(2.6)", immediateRender: false }, 5.7);
+          tl.set("#bubble", { scale: 0 }, 0);
+          for (var k = 0; k < 7; k++) {
+            tl.fromTo("#sp" + k, { scale: 0, rotation: 0 }, { scale: 1.2, rotation: 120, duration: 0.35, ease: "back.out(3)", immediateRender: false }, 5.75 + k * 0.05);
+            tl.to("#sp" + k, { scale: 0, duration: 0.3, ease: "power2.in" }, 6.6 + k * 0.05);
+          }
+          tl.set(".spk", { scale: 0 }, 0);
+          tl.fromTo("#c2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(2)", immediateRender: false }, 6.5);
+          tl.set("#c2", { opacity: 0 }, 0);
+
+          // S3: the phone gets crossed out and becomes a crayon
+          tl.fromTo("#phx", { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.35, ease: "power2.out", immediateRender: false }, 8.3);
+          tl.set("#phx", { drawSVG: "0%" }, 0);
+          tl.to("#phx", { opacity: 0, duration: 0.1 }, 8.9);
+          tl.to("#phone", { morphSVG: { shape: "#cray", type: "rotational" }, fill: "#e94f37", duration: 0.45, ease: "power4.inOut" }, 9.0);
+          tl.to("#ph", { rotation: 30, scale: 0.75, duration: 0.45, ease: "power4.inOut", transformOrigin: "50% 50%" }, 9.0);
+          tl.fromTo("#c3a", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "back.out(2)", immediateRender: false }, 9.0);
+          tl.set("#c3a", { opacity: 0 }, 0);
+          tl.fromTo("#t3a", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.25, ease: "expo.out", immediateRender: false }, 8.05);
+          tl.set("#t3a", { opacity: 0 }, 0);
+          // swap to the colouring page
+          tl.to(["#ph", "#t3a", "#c3a"], { opacity: 0, duration: 0.2 }, 9.9);
+          tl.set("#t3b", { opacity: 1 }, 10.0);
+          tl.fromTo("#pageW", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.6)", immediateRender: false }, 10.0);
+          var plan = [["Q-kid-face", "Q-kid-neck"], ["Q-kid-hair", "Q-kid-pt1", "Q-kid-pt2"], ["Q-kid-shirt"], ["Q-kid-star", "Q-sun"], ["Q-dog-body", "Q-dog-head", "Q-dog-leg1", "Q-dog-leg2", "Q-dog-tail"], ["Q-grass"], ["Q-sky"]];
+          var cx = 170 + 6 + 32, cy = 450 + 6 + 32, t = 10.3;
+          tl.set("#crayon", { x: 1300, y: 1500 }, 0);
+          plan.forEach(function (grp, k) {
+            var el = document.getElementById(grp[0]), b = el.getBBox(), m = el.getCTM(), px = b.x + b.width / 2, py = b.y + b.height / 2;
+            var x = cx + (m.a * px + m.c * py + m.e) * (664 / 680), y = cy + (m.b * px + m.d * py + m.f) * (664 / 680);
+            var col = el.getAttribute("data-c");
+            tl.to("#crayon", { x: x, y: y, duration: k ? 0.18 : 0.3, ease: "power2.inOut" }, t);
+            tl.to(["#crBody", "#crTip"], { attr: { fill: col }, duration: 0.05 }, t);
+            grp.forEach(function (id) { var g = document.getElementById(id); tl.fromTo(g, { fill: "#fffdf8" }, { fill: g.getAttribute("data-c"), duration: 0.18, ease: "power1.out", immediateRender: false }, t + (k ? 0.18 : 0.3)); });
+            tl.fromTo("#crw", { x: 0, y: 0 }, { x: 12, y: -8, duration: 0.05, yoyo: true, repeat: 3, ease: "sine.inOut", immediateRender: false }, t + (k ? 0.18 : 0.3));
+            t += k ? 0.38 : 0.5;
+          });
+          tl.to("#crayon", { x: 1250, y: 1300, duration: 0.4, ease: "power2.in" }, t);
+          tl.set("#chips", { opacity: 1 }, 11.0);
+          [0, 1, 2].forEach(function (k) { tl.fromTo("#ch" + k, { scale: 0, rotation: k % 2 ? 8 : -8 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(2.6)", immediateRender: false }, 11.0 + k * B); tl.set("#ch" + k, { scale: 0 }, 0); });
+
+          // S4: proof + trust
+          tl.fromTo("#t4", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, 13.05);
+          tl.fromTo("#card", { y: 200, rotation: 4, opacity: 0 }, { y: 0, rotation: -1, opacity: 1, duration: 0.5, ease: "back.out(1.6)", immediateRender: false }, 13.2);
+          tl.fromTo(".st", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)", stagger: 0.08, immediateRender: false }, 13.6);
+          tl.fromTo("#trust", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out", immediateRender: false }, 14.6);
+          tl.set(["#t4", "#card", "#trust"], { opacity: 0 }, 0); tl.set(".st", { scale: 0 }, 0);
+
+          // S5: CTA
+          tl.fromTo("#brand", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(2)", immediateRender: false }, 16.55);
+          [0, 1, 2].forEach(function (k) { tl.fromTo("#st" + k, { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(2.4)", immediateRender: false }, 16.8 + k * B); tl.set("#st" + k, { scale: 0 }, 0); });
+          tl.fromTo(".ar", { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.3, stagger: B, ease: "power2.out", immediateRender: false }, 17.05);
+          tl.set(".ar", { drawSVG: "0%" }, 0);
+          tl.fromTo("#stamp", { scale: 2.6, opacity: 0, rotation: -24 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.22, ease: "power4.in", immediateRender: false }, 18.3);
+          tl.fromTo("#cta", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2.4)", immediateRender: false }, 18.6);
+          tl.to("#cta", { scale: 1.06, duration: 0.25, yoyo: true, repeat: 3, ease: "sine.inOut" }, 19.06);
+          tl.set(["#brand", "#stamp", "#cta"], { opacity: 0 }, 0);
+          window.__timelines["anne"] = tl;
+        }
+        document.fonts.ready.then(build);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="tr" data-composition-variables='[
+  {"id":"marka","type":"string","label":"Marka","default":"Boyama Kitabım"},
+  {"id":"cocuk","type":"string","label":"Çocuğun adı","default":"Ela"},
+  {"id":"cocuk_iyelik","type":"string","label":"Ad + iyelik eki","default":"Ela&#39;nın"},
+  {"id":"cocuk_yonelme","type":"string","label":"Ad + yönelme eki","default":"Ela&#39;ya"}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/shader-transitions.js"></script>
+    <script src="shared/art.js"></script>
+    <link rel="stylesheet" href="base.css" />
+    <style>
+      #q { position: absolute; left: 108px; right: 108px; top: 260px; font-size: 128px; }
+      #gift1 { position: absolute; left: 240px; top: 900px; }
+      .qm { position: absolute; font-size: 150px; color: #e94f37; }
+      #lab { position: absolute; left: 108px; top: 220px; font-size: 76px; color: #e94f37; }
+      .step { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+      .num { position: absolute; left: 108px; top: 300px; font-size: 330px; color: #e94f37; line-height: 1; }
+      .stt { position: absolute; left: 330px; right: 90px; top: 370px; font-size: 98px; line-height: 0.95; }
+      #phone { position: absolute; left: 300px; top: 720px; width: 480px; height: 820px; border-radius: 60px; border: 8px solid #231c18; background-color: #fffdf8; box-shadow: 14px 16px 0 #231c18; overflow: hidden; }
+      #phone .notch { position: absolute; left: 160px; top: 18px; width: 144px; height: 28px; border-radius: 14px; background-color: #231c18; }
+      #thumb { position: absolute; left: 50px; top: 110px; width: 364px; height: 364px; border: 5px solid #231c18; border-radius: 16px; overflow: hidden; background-color: #bfe3f7; }
+      #prog { position: absolute; left: 50px; top: 530px; width: 364px; height: 30px; border-radius: 15px; border: 5px solid #231c18; overflow: hidden; background-color: #fffdf8; }
+      #progf { width: 100%; height: 100%; background-color: #44bba4; transform-origin: left center; }
+      #okk { position: absolute; left: 50px; right: 50px; top: 600px; text-align: center; font-size: 60px; color: #2f8f7d; }
+      #chips { position: absolute; left: 108px; right: 108px; top: 760px; display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+      .chip { position: relative; height: 150px; border-radius: 34px; border: 7px solid #231c18; background-color: #fffdf8; box-shadow: 10px 12px 0 #231c18;
+        display: flex; align-items: center; justify-content: center; font-size: 62px; }
+      .chip .ck { position: absolute; right: -18px; top: -26px; width: 70px; height: 70px; border-radius: 50%; background-color: #44bba4; border: 6px solid #231c18; color: #fffdf8; font-size: 40px; display: flex; align-items: center; justify-content: center; }
+      #parcel { position: absolute; left: 230px; top: 820px; }
+      #tag { position: absolute; left: 560px; top: 1140px; font-size: 70px; color: #231c18; background-color: #fffdf8; border: 6px solid #231c18; border-radius: 16px; padding: 4px 28px; }
+      #stamp { position: absolute; left: 610px; top: 760px; font-size: 64px; color: #2f8f7d; border: 8px solid #2f8f7d; border-radius: 20px; padding: 6px 22px; }
+      #fin { position: absolute; left: 108px; right: 108px; top: 230px; font-size: 118px; text-align: center; }
+      #gift2 { position: absolute; left: 240px; top: 820px; }
+      #lid { position: absolute; left: 210px; top: 730px; }
+      #bk { position: absolute; left: 330px; top: 580px; width: 420px; height: 540px; border-radius: 10px 22px 22px 10px; background-color: #3f88c5; border: 7px solid #231c18; box-shadow: 12px 14px 0 #231c18; overflow: hidden; }
+      #bk .ttl { position: absolute; left: 46px; right: 20px; top: 30px; font-size: 52px; color: #fffdf8; line-height: 0.95; }
+      #bk svg { position: absolute; left: 30px; top: 170px; }
+      #conf { position: absolute; left: 0; top: 0; }
+      .cf { position: absolute; width: 26px; height: 16px; border-radius: 4px; border: 3px solid #231c18; }
+      #brand { position: absolute; left: 0; right: 0; top: 1390px; text-align: center; font-size: 92px; }
+      #cta { position: absolute; left: 230px; right: 230px; top: 1520px; text-align: center; padding: 26px 0; border-radius: 999px; background-color: #e94f37; color: #fffdf8;
+        border: 6px solid #231c18; font-size: 52px; box-shadow: 10px 12px 0 #231c18; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="reklam3" data-start="0" data-duration="15" data-width="1080" data-height="1920">
+      <div id="s1" class="scene">
+        <h1 class="display" id="q">Doğum günü hediyesi mi arıyorsun?</h1>
+        <div class="qm display" id="qm1" style="left:120px;top:1080px">?</div>
+        <div class="qm display" id="qm2" style="left:870px;top:960px">?</div>
+        <svg id="gift1" width="600" height="620" viewBox="-300 -260 600 620"></svg>
+      </div>
+      <div id="s2" class="scene">
+        <div class="hand" id="lab">3 adımda hazır:</div>
+        <div class="step" id="st1"><div class="num display">1</div><h2 class="stt display">Fotoğrafını yükle</h2>
+          <div id="phone"><div class="notch"></div><div id="thumb"><svg width="364" height="364" viewBox="0 0 680 680" id="thsvg"></svg></div>
+            <div id="prog"><div id="progf"></div></div><div id="okk" class="hand">Yüklendi ✓</div></div></div>
+        <div class="step" id="st2"><div class="num display">2</div><h2 class="stt display">Hikâyeyi seç</h2>
+          <div id="chips"></div></div>
+        <div class="step" id="st3"><div class="num display">3</div><h2 class="stt display">Kapına gelsin</h2>
+          <svg id="parcel" width="620" height="560" viewBox="-310 -280 620 560"></svg>
+          <div id="tag" class="hand"></div><div id="stamp" class="display">KARGODA</div></div>
+      </div>
+      <div id="s3" class="scene">
+        <h1 class="display" id="fin">Unutulmaz bir <span style="color:#e94f37">hediye.</span></h1>
+        <div id="bk"><div class="ttl display" id="bkt"></div><svg width="360" height="380" viewBox="-230 -150 460 480" id="bksvg"></svg></div>
+        <svg id="gift2" width="600" height="500" viewBox="-300 -140 600 500"></svg>
+        <svg id="lid" width="660" height="220" viewBox="-330 -150 660 220"></svg>
+        <div id="conf"></div>
+        <div class="display" id="brand"></div>
+        <div class="display" id="cta">Hemen oluştur →</div>
+      </div>
+      <audio id="music" src="assets/audio/reklam-3.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      var V = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+      var MARKA = V.marka || "Boyama Kitabım", AD = V.cocuk || "Ela", ADI = V.cocuk_iyelik || "Ela'nın", ADA = V.cocuk_yonelme || "Ela'ya";
+      function prng(seed) { return function () { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+      var R = prng(7);
+      var INK = 'stroke="#231c18" stroke-width="8" stroke-linejoin="round"';
+      function giftBody() {
+        return '<rect x="-250" y="-40" width="500" height="380" rx="18" fill="#e94f37" ' + INK + "/>" +
+          '<rect x="-40" y="-40" width="80" height="380" fill="#f6c445" ' + INK + "/>";
+      }
+      function giftLid() {
+        return '<path d="M-60 -40 C -200 -170, -250 -40, -40 -30 Z" fill="#f6c445" ' + INK + "/>" + '<path d="M60 -40 C 200 -170, 250 -40, 40 -30 Z" fill="#f6c445" ' + INK + "/>" +
+          '<rect x="-290" y="-40" width="580" height="110" rx="18" fill="#e94f37" ' + INK + "/>" + '<rect x="-40" y="-40" width="80" height="110" fill="#f6c445" ' + INK + "/>";
+      }
+      document.getElementById("gift1").innerHTML = giftBody() + '<g transform="translate(0 -60)">' + giftLid() + "</g>";
+      document.getElementById("gift2").innerHTML = giftBody();
+      document.getElementById("lid").innerHTML = giftLid();
+
+      // step 1 thumbnail: the family photo
+      var th = document.getElementById("thsvg");
+      th.innerHTML = '<rect class="rg" data-c="#bfe3f7" x="0" y="0" width="680" height="680" fill="#fff"/>' +
+        '<circle class="rg" data-c="#f6c445" cx="560" cy="120" r="58" fill="#fff"/>' +
+        '<path class="rg" data-c="#7cc46b" d="M-10 470 Q170 420 340 462 T690 452 L690 690 L-10 690 Z" fill="#fff"/>' +
+        '<g transform="translate(220 300) scale(0.78)">' + ART.kid("tk") + "</g>" + '<g transform="translate(510 452) scale(0.55)">' + ART.dog("td") + "</g>";
+      ART.paint(th);
+      // step 2 chips
+      var THEMES = ["Uzay", "Dinozor", "Korsan", "Prenses", "Hayvanlar", "Deniz"], chips = document.getElementById("chips");
+      THEMES.forEach(function (t, i) { var c = document.createElement("div"); c.className = "chip display"; c.id = "chip" + i; c.textContent = t;
+        if (i === 0) { var k = document.createElement("span"); k.className = "ck"; k.id = "ck0"; k.textContent = "✓"; c.appendChild(k); } chips.appendChild(c); });
+      // step 3 parcel
+      document.getElementById("parcel").innerHTML = '<path d="M-260 -120 L0 -230 L260 -120 L0 -10 Z" fill="#e2b77a" ' + INK + "/>" +
+        '<path d="M-260 -120 L0 -10 L0 260 L-260 150 Z" fill="#c9965a" ' + INK + "/>" + '<path d="M260 -120 L0 -10 L0 260 L260 150 Z" fill="#d9a86b" ' + INK + "/>" +
+        '<path d="M-130 -175 L130 -65" stroke="#f6c445" stroke-width="34"/>';
+      document.getElementById("tag").textContent = ADA + " ♥";
+      // finale book
+      document.getElementById("bkt").textContent = ADI + " Boyama Kitabı";
+      document.getElementById("bksvg").innerHTML = ART.kid("bkk"); ART.paint(document.getElementById("bksvg"));
+      document.getElementById("brand").textContent = MARKA;
+      // confetti
+      var conf = document.getElementById("conf"), CF = [], COLS = ["#e94f37", "#f6c445", "#3f88c5", "#44bba4", "#f49cbb"];
+      for (var i = 0; i < 36; i++) {
+        var d = document.createElement("div"); d.className = "cf"; d.id = "cf" + i; d.style.left = "526px"; d.style.top = "840px"; d.style.backgroundColor = COLS[i % 5];
+        conf.appendChild(d); CF.push({ id: "#cf" + i, dx: (R() - 0.5) * 1000, up: 500 + R() * 520, rot: (R() - 0.5) * 900, fall: 700 + R() * 500 });
+      }
+
+      var tl = HyperShader.init({ bgColor: "#fbf6ec", accentColor: "#e94f37", scenes: ["s1", "s2", "s3"],
+        transitions: [{ time: 2.7, shader: "cross-warp-morph", duration: 0.6 }, { time: 10.2, shader: "flash-through-white", duration: 0.6 }] });
+
+      // s1
+      tl.fromTo("#q", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, 0.1);
+      tl.fromTo("#gift1", { y: 900, rotation: 12 }, { y: 0, rotation: 0, duration: 0.7, ease: "back.out(1.4)" }, 0.3);
+      tl.fromTo("#gift1", { rotation: 0 }, { rotation: 6, duration: 0.08, ease: "sine.inOut", yoyo: true, repeat: 9, transformOrigin: "50% 100%" }, 1.2);
+      tl.fromTo(["#qm1", "#qm2"], { scale: 0, rotation: -30 }, { scale: 1, rotation: 10, duration: 0.45, ease: "back.out(3)", stagger: 0.2 }, 0.9);
+
+      // s2 steps
+      tl.fromTo("#lab", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 3.0);
+      function stepIn(id, at) {
+        tl.fromTo(id + " .num", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.8)" }, at);
+        tl.fromTo(id + " .stt", { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, at + 0.1);
+      }
+      function stepOut(id, at) { tl.to(id, { y: -140, opacity: 0, duration: 0.3, ease: "power2.in" }, at); }
+      tl.set(["#st2", "#st3"], { opacity: 0 }, 0);
+      stepIn("#st1", 3.0);
+      tl.fromTo("#phone", { y: 300, opacity: 0, rotation: 8 }, { y: 0, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(1.5)" }, 3.2);
+      tl.fromTo("#thumb", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(2)" }, 3.7);
+      tl.fromTo("#progf", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power1.inOut" }, 4.0);
+      tl.fromTo("#okk", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, 4.9);
+      stepOut("#st1", 5.4);
+      tl.fromTo("#st2", { opacity: 0, y: 140 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 5.55); stepIn("#st2", 5.55);
+      THEMES.forEach(function (t, i) { tl.fromTo("#chip" + i, { scale: 0, rotation: i % 2 ? 8 : -8 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(2.6)" }, 5.9 + i * 0.09); });
+      tl.fromTo("#chip0", { backgroundColor: "#fffdf8", color: "#231c18" }, { backgroundColor: "#e94f37", color: "#fffdf8", duration: 0.2 }, 6.9);
+      tl.fromTo("#chip0", { scale: 1 }, { scale: 1.1, duration: 0.14, yoyo: true, repeat: 1 }, 6.9);
+      tl.fromTo("#ck0", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, 7.05);
+      THEMES.forEach(function (t, i) { if (i) tl.to("#chip" + i, { opacity: 0.35, duration: 0.3 }, 7.0); });
+      stepOut("#st2", 7.9);
+      tl.fromTo("#st3", { opacity: 0, y: 140 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 8.05); stepIn("#st3", 8.05);
+      tl.fromTo("#parcel", { x: 900, rotation: 20 }, { x: 0, rotation: 0, duration: 0.7, ease: "back.out(1.3)" }, 8.3);
+      tl.fromTo("#tag", { scale: 0, rotation: -20 }, { scale: 1, rotation: -6, duration: 0.4, ease: "back.out(2.5)" }, 8.9);
+      tl.fromTo("#stamp", { scale: 2.4, opacity: 0, rotation: 20 }, { scale: 1, opacity: 1, rotation: 10, duration: 0.25, ease: "power4.in" }, 9.3);
+
+      // s3 finale
+      tl.fromTo("#fin", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, 10.5);
+      tl.fromTo(["#gift2", "#lid"], { y: 700 }, { y: 0, duration: 0.55, ease: "back.out(1.4)" }, 10.4);
+      tl.fromTo("#lid", { rotation: 0 }, { rotation: 4, duration: 0.07, yoyo: true, repeat: 5, ease: "sine.inOut" }, 10.95);
+      tl.to("#lid", { y: -1500, x: 320, rotation: 50, duration: 0.7, ease: "power2.in" }, 11.4);
+      tl.fromTo("#bk", { y: 420, scale: 0.6, rotation: 0 }, { y: -40, scale: 1, rotation: -4, duration: 0.7, ease: "back.out(1.8)" }, 11.45);
+      CF.forEach(function (c, k) {
+        tl.fromTo(c.id, { x: 0, y: 0, rotation: 0, opacity: 1 }, { x: c.dx * 0.7, y: -c.up, rotation: c.rot * 0.5, duration: 0.6, ease: "power2.out" }, 11.45 + (k % 6) * 0.02);
+        tl.to(c.id, { x: c.dx, y: -c.up + c.fall, rotation: c.rot, duration: 1.6, ease: "power1.in" }, 12.05 + (k % 6) * 0.02);
+      });
+      tl.fromTo("#brand", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 12.3);
+      tl.fromTo("#cta", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2.4)" }, 12.6);
+      tl.fromTo("#cta", { scale: 1 }, { scale: 1.07, duration: 0.45, ease: "sine.inOut", yoyo: true, repeat: 2 }, 13.2);
+      window.__timelines["reklam3"] = tl;
+    </script>
+  </body>
+</html>

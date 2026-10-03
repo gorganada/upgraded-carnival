@@ -1,0 +1,29 @@
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+@font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+@font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+
+/* palette: paper #fbf6ec · ink #231c18 · crayon red #e94f37 · yellow #f6c445 · blue #3f88c5 · green #44bba4 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #fbf6ec; }
+#root { position: relative; width: 100%; height: 100%; }
+.scene { position: absolute; inset: 0; overflow: hidden; background-color: #fbf6ec; color: #231c18;
+  background-image: radial-gradient(rgba(35,28,24,0.13) 2.5px, rgba(35,28,24,0) 3px); background-size: 36px 36px; }
+.display { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 0.95; }
+.hand { font-family: "Caveat", cursive; font-weight: 700; }
+.mark { position: relative; display: inline-block; isolation: isolate; white-space: nowrap; }
+.mark .t { position: relative; }
+.mark .bar { position: absolute; left: -10px; right: -10px; bottom: 6px; height: 38%; background-color: #f6c445; border-radius: 8px; transform-origin: left center; }
+.isolate { isolation: isolate; }
+
+/* end card */
+.end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 230px 108px 0; text-align: center; }
+.end .book { position: relative; width: 560px; height: 720px; border-radius: 12px 26px 26px 12px; background-color: #3f88c5;
+  box-shadow: 18px 22px 0 #231c18; border: 7px solid #231c18; overflow: hidden; }
+.end .book .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background-color: #2f6ea5; border-right: 5px solid #231c18; }
+.end .book .ttl { position: absolute; left: 70px; right: 30px; top: 46px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 64px; line-height: 0.95; color: #fffdf8; text-align: left; letter-spacing: -0.03em; }
+.end .book svg { position: absolute; left: 60px; top: 230px; }
+.end .brand { margin-top: 70px; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 96px; letter-spacing: -0.04em; line-height: 1; }
+.end .sub { margin-top: 18px; font-family: "Caveat", cursive; font-weight: 700; font-size: 62px; color: #5b4c42; }
+.end .cta { margin-top: 44px; padding: 30px 60px; border-radius: 999px; background-color: #e94f37; color: #fffdf8; border: 6px solid #231c18;
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 52px; box-shadow: 10px 12px 0 #231c18; }

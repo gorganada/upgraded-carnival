@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="tr" data-composition-variables='[
+  {"id":"marka","type":"string","label":"Marka","default":"Boyama Kitabım"},
+  {"id":"cocuk","type":"string","label":"Çocuğun adı","default":"Ela"},
+  {"id":"cocuk_iyelik","type":"string","label":"Ad + iyelik eki","default":"Ela&#39;nın"},
+  {"id":"evcil","type":"string","label":"Evcil hayvan","default":"Pamuk"}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/shader-transitions.js"></script>
+    <script src="shared/art.js"></script>
+    <script src="shared/endcard.js"></script>
+    <link rel="stylesheet" href="base.css" />
+    <style>
+      .hl { position: absolute; left: 108px; right: 108px; top: 230px; font-size: 118px; }
+      #pol { position: absolute; left: 160px; top: 560px; width: 760px; height: 900px; background-color: #fffdf8; border: 6px solid #231c18;
+        border-radius: 10px; box-shadow: 16px 20px 0 #231c18; }
+      #photo { position: absolute; left: 34px; top: 34px; width: 680px; height: 680px; overflow: hidden; border: 5px solid #231c18; }
+      #photo svg { position: absolute; left: 0; top: 0; }
+      #colorL { position: absolute; inset: 0; }
+      #tint { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255,214,150,0.12) 40%, rgba(60,30,10,0.38) 100%); }
+      #scan { position: absolute; left: -20px; right: -20px; top: 0; height: 16px; background-color: #f6c445; border: 3px solid #231c18; border-radius: 8px; }
+      #capt { position: absolute; left: 0; right: 0; top: 740px; text-align: center; font-size: 76px; color: #231c18; }
+      #note { position: absolute; left: 108px; right: 108px; top: 1500px; text-align: center; font-size: 70px; color: #e94f37; }
+      #crayon { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+      #crw { position: absolute; left: 0; top: 0; }
+      #crayon svg { position: absolute; left: -30px; top: -300px; transform: rotate(35deg); transform-origin: 30px 300px; }
+      .spark { position: absolute; width: 60px; height: 60px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="reklam1" data-start="0" data-duration="15" data-width="1080" data-height="1920">
+      <div id="s1" class="scene">
+        <h1 class="hl display" id="h1">Bu bir fotoğraf.</h1>
+        <h1 class="hl display" id="h2">Ama biz onu…</h1>
+        <h1 class="hl display isolate" id="h3" style="font-size:100px"><span class="mark"><span class="bar" id="h3bar"></span><span class="t">boyama sayfası</span></span> yapıyoruz.</h1>
+        <h1 class="hl display" id="h4">Şimdi sıra <span style="color:#e94f37">onda.</span></h1>
+        <div id="pol">
+          <div id="photo">
+            <svg id="lineL" width="680" height="680" viewBox="0 0 680 680"></svg>
+            <div id="colorL"><svg id="photoL" width="680" height="680" viewBox="0 0 680 680"></svg><div id="tint"></div></div>
+            <div id="scan"></div>
+          </div>
+          <div id="capt" class="hand"></div>
+        </div>
+        <div id="sparks"></div>
+        <div id="note" class="hand"></div>
+        <div id="crayon"><div id="crw"><svg width="60" height="300" viewBox="0 0 60 300">
+          <rect x="6" y="0" width="48" height="262" rx="8" id="crBody" fill="#e94f37" stroke="#231c18" stroke-width="6" />
+          <rect x="6" y="60" width="48" height="120" fill="#fffdf8" stroke="#231c18" stroke-width="6" />
+          <path d="M8 260 L52 260 L30 298 Z" id="crTip" fill="#e94f37" stroke="#231c18" stroke-width="6" stroke-linejoin="round" />
+        </svg></div></div>
+      </div>
+      <div id="s2" class="scene"><div class="end" id="end"></div></div>
+      <audio id="music" src="assets/audio/reklam-1.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      var V = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+      var MARKA = V.marka || "Boyama Kitabım", AD = V.cocuk || "Ela", ADI = V.cocuk_iyelik || "Ela'nın", EVCIL = V.evcil || "Pamuk";
+
+      function scene(p) {
+        return '<rect class="rg" id="' + p + '-sky" data-c="#bfe3f7" x="0" y="0" width="680" height="680" fill="#fffdf8" stroke="none"/>' +
+          '<g>' + '<circle class="rg" id="' + p + '-sun" data-c="#f6c445" cx="560" cy="120" r="58" fill="#fffdf8" stroke="#231c18" stroke-width="7"/>' +
+          '<path d="M560 34 V10 M560 206 V230 M474 120 H450 M646 120 H670 M500 60 L484 44 M620 60 L636 44 M500 180 L484 196 M620 180 L636 196" stroke="#231c18" stroke-width="7" stroke-linecap="round"/></g>' +
+          '<path d="M70 150 q20 -40 60 -20 q30 -30 60 0 q30 0 20 30 h-140 q-20 0 0 -10 z" fill="none" stroke="#231c18" stroke-width="6" stroke-linejoin="round"/>' +
+          '<path class="rg" id="' + p + '-grass" data-c="#7cc46b" d="M-10 470 Q170 420 340 462 T690 452 L690 690 L-10 690 Z" fill="#fffdf8" stroke="#231c18" stroke-width="7"/>' +
+          '<g transform="translate(220 300) scale(0.78)">' + ART.kid(p + "-kid") + "</g>" +
+          '<g transform="translate(510 452) scale(0.55)">' + ART.dog(p + "-dog") + "</g>";
+      }
+      document.getElementById("lineL").innerHTML = scene("L");
+      document.getElementById("photoL").innerHTML = scene("P");
+      var photo = document.getElementById("photoL");
+      ART.paint(photo);
+      photo.querySelectorAll("[stroke]").forEach(function (e) { e.setAttribute("stroke", "rgba(35,28,24,0.22)"); e.setAttribute("stroke-width", "3"); });
+      document.getElementById("capt").textContent = AD + " & " + EVCIL + " ♥";
+      document.getElementById("note").textContent = AD + ", 6 yaşında. Kendini boyuyor!";
+      ENDCARD.build(document.getElementById("end"), { p: "e", title: ADI + " Boyama Kitabı", brand: MARKA, sub: "Fotoğrafınız, onun kitabı.", cta: "Fotoğrafını yükle →" });
+
+      // sparkles along the scan line (deterministic positions)
+      var sp = document.getElementById("sparks"), SPK = [];
+      for (var i = 0; i < 9; i++) {
+        var x = 190 + ((i * 263) % 640), y = 620 + i * 72;
+        var d = document.createElement("div"); d.className = "spark"; d.id = "spk" + i; d.style.left = x + "px"; d.style.top = y + "px";
+        d.innerHTML = '<svg width="60" height="60" viewBox="-30 -30 60 60"><path d="M0 -28 L7 -7 L28 0 L7 7 L0 28 L-7 7 L-28 0 L-7 -7 Z" fill="#f6c445" stroke="#231c18" stroke-width="4" stroke-linejoin="round"/></svg>';
+        sp.appendChild(d); SPK.push([d, y]);
+      }
+
+      // coloring plan: [region ids..., crayon color]
+      var PLAN = [
+        [["L-dog-body", "L-dog-leg1", "L-dog-leg2", "L-dog-tail"], "#f3e3c3"],
+        [["L-dog-head"], "#f3e3c3"], [["L-dog-ear1", "L-dog-ear2"], "#c98b55"],
+        [["L-kid-face", "L-kid-neck"], "#f6c9a4"], [["L-kid-hair", "L-kid-pt1", "L-kid-pt2"], "#7a4a2b"],
+        [["L-kid-shirt"], "#3f88c5"], [["L-kid-star"], "#f6c445"], [["L-kid-ch1", "L-kid-ch2"], "#f49cbb"],
+        [["L-sun"], "#f6c445"], [["L-grass"], "#7cc46b"], [["L-sky"], "#bfe3f7"],
+      ];
+      var line = document.getElementById("lineL");
+      function center(id) { var b = document.getElementById(id).getBBox(), m = document.getElementById(id).getCTM();
+        var px = b.x + b.width / 2, py = b.y + b.height / 2; return [m.a * px + m.c * py + m.e, m.b * px + m.d * py + m.f]; }
+      var PHX = 160 + 6 + 34 + 5, PHY = 560 + 6 + 34 + 5; // page offset of the photo's svg origin
+
+      var tl = HyperShader.init({ bgColor: "#fbf6ec", accentColor: "#e94f37", scenes: ["s1", "s2"], transitions: [{ time: 11.3, shader: "ripple-waves", duration: 0.8 }] });
+
+      // headlines
+      function hlIn(id, at) { tl.fromTo(id, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.8)" }, at); }
+      function hlOut(id, at) { tl.to(id, { y: -60, opacity: 0, duration: 0.3, ease: "power2.in" }, at); }
+      hlIn("#h1", 0.15); hlOut("#h1", 2.2);
+      hlIn("#h2", 2.45); hlOut("#h2", 3.5);
+      hlIn("#h3", 3.7); tl.fromTo("#h3bar", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out" }, 4.1); hlOut("#h3", 5.6);
+      hlIn("#h4", 5.85);
+
+      // polaroid drops in
+      tl.fromTo("#pol", { y: -1300, rotation: -18 }, { y: 0, rotation: -4, duration: 1.0, ease: "back.out(1.1)" }, 0.25);
+      tl.fromTo("#capt", { opacity: 0, clipPath: "inset(0 100% 0 0)" }, { opacity: 1, clipPath: "inset(0 0% 0 0)", duration: 0.8, ease: "power1.inOut" }, 1.1);
+      // scan photo -> line art
+      tl.fromTo("#scan", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 2.55);
+      tl.fromTo("#scan", { y: -8 }, { y: 672, duration: 2.0, ease: "power1.inOut" }, 2.6);
+      tl.fromTo("#colorL", { clipPath: "inset(0px 0px 0px 0px)" }, { clipPath: "inset(680px 0px 0px 0px)", duration: 2.0, ease: "power1.inOut" }, 2.6);
+      tl.to("#scan", { opacity: 0, duration: 0.2 }, 4.6);
+      SPK.forEach(function (s, k) {
+        var at = 2.6 + clamp01((s[1] - 600) / 680) * 2.0;
+        tl.fromTo(s[0], { scale: 0, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.3, ease: "back.out(3)" }, at);
+        tl.to(s[0], { scale: 0, duration: 0.3, ease: "power2.in" }, at + 0.35);
+      });
+      function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+      tl.to("#pol", { rotation: 0, duration: 0.5, ease: "power2.inOut" }, 4.7);
+
+      // crayon colors the page
+      var t = 5.3, prev = null;
+      tl.fromTo("#crayon", { x: 1300, y: 1500, opacity: 1 }, { x: 1300, y: 1500, duration: 0.01 }, 0);
+      PLAN.forEach(function (step, k) {
+        var c = center(step[0][0]); var x = PHX + c[0], y = PHY + c[1];
+        tl.to("#crayon", { x: x, y: y, duration: k === 0 ? 0.45 : 0.22, ease: "power2.inOut" }, t);
+        tl.to(["#crBody", "#crTip"], { attr: { fill: step[1] }, duration: 0.1 }, t);
+        tl.fromTo("#crw", { x: 0, y: 0 }, { x: 14, y: -10, duration: 0.07, ease: "sine.inOut", yoyo: true, repeat: 3 }, t + (k === 0 ? 0.45 : 0.22));
+        step[0].forEach(function (id) { tl.fromTo("#" + id, { fill: "#fffdf8" }, { fill: step[1], duration: 0.28, ease: "power1.out" }, t + (k === 0 ? 0.5 : 0.26)); });
+        t += k === 0 ? 0.9 : 0.46;
+      });
+      tl.to("#crayon", { x: 1250, y: 1300, rotation: 20, duration: 0.5, ease: "power2.in" }, t + 0.1);
+      tl.fromTo("#note", { opacity: 0, y: 30, rotation: -2 }, { opacity: 1, y: 0, rotation: -2, duration: 0.5, ease: "back.out(2)" }, 6.4);
+      tl.fromTo("#pol", { scale: 1 }, { scale: 1.04, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 }, t + 0.2);
+
+      // end card
+      ENDCARD.animate(tl, "e", 11.7);
+      window.__timelines["reklam1"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="tr" data-composition-variables='[
+  {"id":"marka","type":"string","label":"Marka","default":"Boyama Kitabım"},
+  {"id":"cocuk_iyelik","type":"string","label":"Ad + iyelik eki","default":"Ela&#39;nın"}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/shader-transitions.js"></script>
+    <script src="shared/art.js"></script>
+    <script src="shared/endcard.js"></script>
+    <link rel="stylesheet" href="base.css" />
+    <style>
+      .k { position: absolute; left: 108px; right: 80px; font-size: 140px; }
+      #k1 { top: 360px; } #k2 { top: 510px; } #k3 { top: 700px; font-size: 176px; color: #e94f37; line-height: 0.9; }
+      #k3u { position: absolute; left: 100px; top: 1060px; }
+      #peek { position: absolute; left: 340px; top: 1290px; }
+      .doodle { position: absolute; }
+      #top1, #top2 { position: absolute; left: 108px; right: 108px; font-size: 80px; }
+      #top1 { top: 200px; } #top2 { top: 290px; color: #e94f37; }
+      #bookw { position: absolute; left: 140px; top: 560px; width: 800px; height: 1060px; }
+      .page { position: absolute; inset: 0; background-color: #fffdf8; border: 7px solid #231c18; border-radius: 8px 22px 22px 8px; box-shadow: 16px 18px 0 #231c18; overflow: hidden; }
+      .page svg { position: absolute; left: 0; top: 0; }
+      .plabel { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font-size: 64px; color: #231c18; }
+      .pnum { position: absolute; right: 34px; top: 26px; font-size: 48px; color: #8a7a6c; }
+      #cover { background-color: #3f88c5; }
+      #cover .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 56px; background-color: #2f6ea5; border-right: 6px solid #231c18; }
+      #ctitle { position: absolute; left: 96px; right: 40px; top: 60px; font-size: 104px; color: #fffdf8; line-height: 0.92; }
+      #cname { color: #f6c445; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="reklam2" data-start="0" data-duration="15" data-width="1080" data-height="1920">
+      <div id="s1" class="scene">
+        <div id="doodles"></div>
+        <h1 class="k display" id="k1">Bu kitabın</h1>
+        <h1 class="k display" id="k2">kahramanı…</h1>
+        <h1 class="k display" id="k3">SENİN ÇOCUĞUN.</h1>
+        <svg id="k3u" width="880" height="60" viewBox="0 0 880 60"><path id="k3p" d="M10 40 C 160 10, 320 55, 470 28 S 760 12, 870 34" fill="none" stroke="#231c18" stroke-width="12" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1"/></svg>
+        <svg id="peek" width="400" height="300" viewBox="-200 -130 400 300"></svg>
+      </div>
+      <div id="s2" class="scene">
+        <h2 class="display" id="top1">Kapağında adı,</h2>
+        <h2 class="display" id="top2">her sayfasında kendisi.</h2>
+        <div id="bookw">
+          <div class="page" id="pg3"><svg width="800" height="1060" viewBox="0 0 800 1060" id="sv3"></svg><div class="pnum hand">20</div><div class="plabel hand">Hazine avı</div></div>
+          <div class="page" id="pg2"><svg width="800" height="1060" viewBox="0 0 800 1060" id="sv2"></svg><div class="pnum hand">12</div><div class="plabel hand">Dinozor dostu</div></div>
+          <div class="page" id="pg1"><svg width="800" height="1060" viewBox="0 0 800 1060" id="sv1"></svg><div class="pnum hand">4</div><div class="plabel hand">Ay'a yolculuk</div></div>
+          <div class="page" id="cover"><div class="spine"></div><h3 class="display" id="ctitle"><span id="cname"></span> Uzay Macerası</h3>
+            <svg width="800" height="1060" viewBox="0 0 800 1060" id="svc"></svg></div>
+        </div>
+      </div>
+      <div id="s3" class="scene"><div class="end" id="end"></div></div>
+      <audio id="music" src="assets/audio/reklam-2.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      var V = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+      var MARKA = V.marka || "Boyama Kitabım", ADI = V.cocuk_iyelik || "Ela'nın";
+
+      // s1 doodles (deterministic placement)
+      var dd = document.getElementById("doodles"), DOOD = [[120, 180, 50], [900, 240, 36], [930, 1180, 54], [90, 1500, 40], [820, 1650, 46], [520, 230, 28]];
+      DOOD.forEach(function (q, i) {
+        var d = document.createElement("div"); d.className = "doodle"; d.id = "dd" + i; d.style.left = (q[0] - q[2]) + "px"; d.style.top = (q[1] - q[2]) + "px";
+        d.innerHTML = '<svg width="' + q[2] * 2 + '" height="' + q[2] * 2 + '" viewBox="' + -q[2] + " " + -q[2] + " " + q[2] * 2 + " " + q[2] * 2 + '">' + ART.star("dds" + i, 0, 0, q[2] * 0.85) + "</svg>";
+        dd.appendChild(d);
+        ART.paint(d);
+      });
+      document.getElementById("peek").innerHTML = ART.kid("pk", { body: false });
+      ART.paint(document.getElementById("peek"));
+
+      // cover + pages
+      document.getElementById("cname").textContent = ADI;
+      document.getElementById("svc").innerHTML = '<g transform="translate(400 560) scale(1.15)">' + ART.astronaut("cv") + "</g>" +
+        ART.star("cvs1", 130, 470, 34) + ART.star("cvs2", 690, 420, 26) + ART.star("cvs3", 660, 900, 30);
+      ART.paint(document.getElementById("svc"));
+      document.getElementById("sv1").innerHTML = ART.star("p1s1", 110, 140, 30) + ART.star("p1s2", 420, 110, 22) + ART.star("p1s3", 700, 640, 26) +
+        '<g transform="translate(600 300) scale(0.75)">' + ART.rocket("p1r") + "</g>" + '<g transform="translate(560 770) scale(0.6)">' + ART.planet("p1p") + "</g>" +
+        '<g transform="translate(270 500) scale(0.85)">' + ART.astronaut("p1a") + "</g>";
+      document.getElementById("sv2").innerHTML = '<circle class="rg" id="p2sun" data-c="#f6c445" cx="660" cy="150" r="60" fill="#fffdf8" stroke="#231c18" stroke-width="7"/>' +
+        '<g transform="translate(420 470) scale(0.55)">' + ART.kid("p2k") + "</g>" + '<g transform="translate(450 720) scale(0.95)">' + ART.dino("p2d") + "</g>";
+      document.getElementById("sv3").innerHTML = '<g transform="translate(560 690) scale(0.85)">' + ART.chest("p3c") + "</g>" +
+        '<g transform="translate(260 380) scale(0.85)">' + ART.kid("p3k", { bandana: true, noPigtails: true, shirt: "#e94f37" }) + "</g>" +
+        ART.star("p3s1", 650, 200, 28) + ART.star("p3s2", 720, 330, 18);
+
+      ENDCARD.build(document.getElementById("end"), { p: "e", title: ADI + " Uzay Macerası", brand: MARKA, sub: "İsmi, yüzü, hikâyesi: ona özel.", cta: "Hemen oluştur →" });
+
+      var tl = HyperShader.init({ bgColor: "#fbf6ec", accentColor: "#e94f37", scenes: ["s1", "s2", "s3"],
+        transitions: [{ time: 2.9, shader: "whip-pan", duration: 0.5 }, { time: 11.3, shader: "swirl-vortex", duration: 0.8 }] });
+
+      // s1: kinetic slam
+      [["#k1", 0.15], ["#k2", 0.75], ["#k3", 1.35]].forEach(function (q) {
+        tl.fromTo(q[0], { scale: 1.8, opacity: 0, transformOrigin: "0% 50%" }, { scale: 1, opacity: 1, duration: 0.35, ease: "expo.out" }, q[1]);
+      });
+      tl.fromTo("#k3", { rotation: 0 }, { rotation: -2, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 3 }, 1.5);
+      tl.fromTo("#k3p", { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.45, ease: "power2.out" }, 1.85);
+      tl.fromTo("#peek", { y: 700 }, { y: 0, duration: 0.6, ease: "back.out(1.6)" }, 1.9);
+      DOOD.forEach(function (q, i) {
+        tl.fromTo("#dd" + i, { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(3)" }, 0.2 + i * 0.12);
+        tl.to("#dd" + i, { rotation: i % 2 ? 25 : -25, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.7 + i * 0.1);
+      });
+
+      // s2: book
+      tl.fromTo("#top1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 3.2);
+      tl.fromTo("#top2", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 5.0);
+      tl.fromTo("#bookw", { y: 300, rotation: 6, scale: 0.85 }, { y: 0, rotation: 0, scale: 1, duration: 0.7, ease: "back.out(1.5)" }, 3.0);
+      tl.fromTo("#cname", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2.5)" }, 3.7);
+      tl.fromTo("#cname", { scale: 1 }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, transformOrigin: "0% 50%" }, 4.2);
+      function flip(sel, at) { tl.fromTo(sel, { rotationY: 0, transformPerspective: 2200, transformOrigin: "0% 50%" }, { rotationY: -92, duration: 0.5, ease: "power2.in" }, at);
+        tl.to(sel, { opacity: 0, duration: 0.01 }, at + 0.5); }
+      function colorPage(svgId, at, dur) {
+        var regs = document.querySelectorAll("#" + svgId + " .rg"), n = regs.length;
+        regs.forEach(function (r, k) { tl.fromTo(r, { fill: "#fffdf8" }, { fill: r.getAttribute("data-c"), duration: 0.25, ease: "power1.out" }, at + (k / n) * dur); });
+      }
+      flip("#cover", 4.8); colorPage("sv1", 5.4, 1.3);
+      flip("#pg1", 6.9); colorPage("sv2", 7.5, 1.3);
+      flip("#pg2", 9.0); colorPage("sv3", 9.6, 1.3);
+      [["#pg1", 4.8], ["#pg2", 6.9], ["#pg3", 9.0]].forEach(function (q) {
+        tl.fromTo(q[0] + " .plabel", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(2)" }, q[1] + 0.5);
+      });
+
+      ENDCARD.animate(tl, "e", 11.7);
+      window.__timelines["reklam2"] = tl;
+    </script>
+  </body>
+</html>

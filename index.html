@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Çanakkale 1915</title>
+<style>
+  :root { --bg:#06070b; --fg:#f4efe6; --red:#e30a17; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow:hidden; }
+  #wrap { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  canvas { display:block; background:#000; box-shadow:0 0 60px rgba(0,0,0,.8); }
+  .overlay { position:fixed; inset:0; display:flex; flex-direction:column; gap:18px;
+    align-items:center; justify-content:center; background:radial-gradient(circle at 50% 40%, rgba(120,10,15,.55), rgba(0,0,0,.92));
+    text-align:center; padding:16px; transition:opacity .4s; }
+  .overlay.hidden { opacity:0; pointer-events:none; }
+  .overlay h1 { margin:0; font-family: Georgia, "Times New Roman", serif; font-size:clamp(36px,8vw,84px); letter-spacing:.06em; }
+  .overlay h1 span { color:var(--red); }
+  .overlay p { margin:0; opacity:.8; font-size:clamp(14px,2.4vw,18px); max-width:560px; }
+  button { font:inherit; cursor:pointer; border:0; border-radius:999px; }
+  .play { background:var(--red); color:#fff; font-size:20px; font-weight:700; padding:14px 34px;
+    box-shadow:0 8px 30px rgba(227,10,23,.45); }
+  .play:hover { transform:scale(1.04); }
+  #mute { position:fixed; top:12px; right:12px; background:rgba(0,0,0,.45); color:#fff; padding:8px 12px; font-size:16px; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c"></canvas></div>
+<button id="mute" title="Ses">🔊</button>
+<div class="overlay" id="start">
+  <h1>ÇANAKKALE <span>1915</span></h1>
+  <p>Çöp adamlarla 20 saniyede Çanakkale Savaşı — Nusret'ten 18 Mart'a, kara çıkarmasından "Çanakkale geçilmez"e.</p>
+  <button class="play" id="playBtn">▶ İzle</button>
+</div>
+<div class="overlay hidden" id="end">
+  <h1>ÇANAKKALE <span>GEÇİLMEZ</span></h1>
+  <button class="play" id="replayBtn">↻ Tekrar İzle</button>
+</div>
+<script>
+(() => {
+const W = 1280, H = 720, END = 21.5;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let scale = 1;
+function resize() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let w = innerWidth, h = w * 9 / 16;
+  if (h > innerHeight) { h = innerHeight; w = h * 16 / 9; }
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  scale = cv.width / W;
+}
+addEventListener('resize', resize); resize();
+
+// ---------- utils ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let R = mulberry32(1915);
+const sR = mulberry32(42);
+const STARS = Array.from({ length: 140 }, () => ({ x: sR() * W, y: sR() * 430, r: sR() * 1.4 + .3, tw: sR() * 6 }));
+function fade(T, a, b, f = .35) { return clamp((T - a) / f) * clamp((b - T) / f); }
+
+// ---------- audio ----------
+let ac = null, master = null, noiseBuf = null, muted = false, silent = false;
+function initAudio() {
+  if (ac) { ac.resume(); return; }
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = .8; master.connect(ac.destination);
+    const len = ac.sampleRate * 3; noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  } catch (e) { ac = null; }
+}
+const canPlay = () => ac && !muted && !silent;
+function boom(p = 1) {
+  if (!canPlay()) return; const t = ac.currentTime;
+  const src = ac.createBufferSource(); src.buffer = noiseBuf;
+  const f = ac.createBiquadFilter(); f.type = 'lowpass';
+  f.frequency.setValueAtTime(400 + 900 * p, t); f.frequency.exponentialRampToValueAtTime(50, t + 1.4 * p);
+  const g = ac.createGain(); g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(.8 * Math.min(1, p), t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + 1.6 * p);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random()); src.stop(t + 2);
+  const o = ac.createOscillator(); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(28, t + .6);
+  const og = ac.createGain(); og.gain.setValueAtTime(.8 * Math.min(1.2, p), t); og.gain.exponentialRampToValueAtTime(.0001, t + .7);
+  o.connect(og); og.connect(master); o.start(t); o.stop(t + .8);
+}
+let lastShot = 0;
+function shot(v = .22) {
+  if (!canPlay()) return; const t = ac.currentTime; if (t - lastShot < .045) return; lastShot = t;
+  const src = ac.createBufferSource(); src.buffer = noiseBuf;
+  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1400 + Math.random() * 900; f.Q.value = .7;
+  const g = ac.createGain(); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + .14);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random() * 2); src.stop(t + .2);
+}
+function splashSnd() {
+  if (!canPlay()) return; const t = ac.currentTime;
+  const src = ac.createBufferSource(); src.buffer = noiseBuf;
+  const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 900;
+  const g = ac.createGain(); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.0001, t + .5);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random() * 2); src.stop(t + .6);
+}
+function pad() {
+  if (!canPlay()) return; const t = ac.currentTime;
+  [110, 164.81, 220, 261.63, 329.63].forEach((fr, i) => {
+    const o = ac.createOscillator(); o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = fr;
+    const g = ac.createGain(); g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(.07, t + 1.2); g.gain.setValueAtTime(.07, t + 2.6); g.gain.exponentialRampToValueAtTime(.0001, t + 5);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + 5.2);
+  });
+}
+
+// ---------- particles / fx ----------
+let P = [], tracers = [], shake = 0, flash = 0;
+function add(p) { const q = Object.assign({ vx: 0, vy: 0, g: 0, drag: 1, grow: 0, life: 1, size: 4, type: 'smoke', col: '#777' }, p); q.max = q.life; P.push(q); }
+function explode(x, y, k = 1, water = false, snd = true) {
+  for (let i = 0; i < 16 * k; i++) add({ type: 'fire', x: x + (R() - .5) * 20 * k, y, vx: (R() - .5) * 280 * k, vy: -R() * 260 * k, drag: .15, g: -60, life: .4 + R() * .5, size: 8 + R() * 18 * k, grow: 30 });
+  for (let i = 0; i < 12 * k; i++) add({ type: 'smoke', x: x + (R() - .5) * 30 * k, y: y - R() * 20, vx: (R() - .5) * 90, vy: -30 - R() * 70, drag: .4, life: 1.4 + R() * 1.4, size: 12 + R() * 20 * k, grow: 26, col: R() < .5 ? '#3a3a3a' : '#6b6b6b' });
+  for (let i = 0; i < 10 * k; i++) add({ type: 'debris', x, y, vx: (R() - .5) * 500 * k, vy: -150 - R() * 400 * k, g: 700, life: 1 + R() * .8, size: 2 + R() * 3, col: '#1d1d1d' });
+  if (water) for (let i = 0; i < 26 * k; i++) add({ type: 'water', x: x + (R() - .5) * 40 * k, y, vx: (R() - .5) * 120 * k, vy: -250 - R() * 520 * k, g: 900, life: 1 + R() * .6, size: 3 + R() * 6, col: '#e8f4fb' });
+  add({ type: 'flash', x, y, size: 90 * k, life: .22 });
+  shake = Math.max(shake, 9 * k); flash = Math.max(flash, .18 * Math.min(k, 1.6));
+  if (snd) boom(Math.min(1.3, .45 + k * .35));
+}
+function splash(x, y, k = 1) {
+  for (let i = 0; i < 18 * k; i++) add({ type: 'water', x: x + (R() - .5) * 16, y, vx: (R() - .5) * 140, vy: -180 - R() * 320 * k, g: 900, life: .8 + R() * .5, size: 2 + R() * 4, col: '#e8f4fb' });
+  splashSnd();
+}
+function dust(x, y) { add({ type: 'smoke', x, y, vx: (R() - .5) * 40, vy: -10 - R() * 20, drag: .3, life: .6 + R() * .4, size: 4 + R() * 5, grow: 14, col: '#b9a27a' }); }
+function muzzle(x, y) { add({ type: 'fire', x, y, life: .08, size: 7 + R() * 5, grow: 0 }); add({ type: 'smoke', x, y, vx: (R() - .5) * 20, vy: -15, life: .6, size: 4, grow: 14, col: '#cfcfcf' }); }
+function tracer(x0, y0, x1, y1) { tracers.push({ x0, y0, x1, y1, life: .12 }); }
+function stepFx(dt) {
+  for (const p of P) { const d = Math.pow(p.drag, dt); p.vx *= d; p.vy *= d; p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.size += p.grow * dt; p.life -= dt; }
+  P = P.filter(p => p.life > 0);
+  for (const tr of tracers) tr.life -= dt; tracers = tracers.filter(t => t.life > 0);
+  shake *= Math.pow(.004, dt); flash *= Math.pow(.01, dt);
+}
+function drawFx() {
+  for (const p of P) {
+    const a = clamp(p.life / p.max);
+    if (p.type === 'smoke') { ctx.globalAlpha = a * .55; ctx.fillStyle = p.col; circle(p.x, p.y, p.size); }
+    else if (p.type === 'water' || p.type === 'debris') { ctx.globalAlpha = p.type === 'water' ? a * .9 : a; ctx.fillStyle = p.col; circle(p.x, p.y, p.size); }
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of P) {
+    const a = clamp(p.life / p.max);
+    if (p.type === 'fire') {
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      g.addColorStop(0, `rgba(255,240,180,${a})`); g.addColorStop(.4, `rgba(255,140,30,${a * .8})`); g.addColorStop(1, 'rgba(200,30,0,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; circle(p.x, p.y, p.size);
+    } else if (p.type === 'flash') {
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      g.addColorStop(0, `rgba(255,255,230,${a})`); g.addColorStop(1, 'rgba(255,200,100,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; circle(p.x, p.y, p.size);
+    }
+  }
+  ctx.lineWidth = 2;
+  for (const t of tracers) { ctx.globalAlpha = clamp(t.life / .12); ctx.strokeStyle = '#ffe9a0';
+    const k = 1 - t.life / .12; ctx.beginPath(); ctx.moveTo(lerp(t.x0, t.x1, k * .6), lerp(t.y0, t.y1, k * .6)); ctx.lineTo(lerp(t.x0, t.x1, k * .6 + .4), lerp(t.y0, t.y1, k * .6 + .4)); ctx.stroke(); }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(.1, r), 0, Math.PI * 2); ctx.fill(); }
+
+// ---------- drawing helpers ----------
+function sky(stops, y1 = H) {
+  const g = ctx.createLinearGradient(0, 0, 0, y1); stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function stars(a, T) { ctx.fillStyle = '#fff'; for (const s of STARS) { ctx.globalAlpha = a * (.5 + .5 * Math.sin(T * 3 + s.tw)); circle(s.x, s.y, s.r); } ctx.globalAlpha = 1; }
+function sun(x, y, r, col, glow) {
+  const g = ctx.createRadialGradient(x, y, r * .3, x, y, r * 4); g.addColorStop(0, glow); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8); ctx.fillStyle = col; circle(x, y, r);
+}
+function hills(y, col, seed, amp = 40, step = 80) {
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, H); const r = mulberry32(seed);
+  for (let x = -step; x <= W + step; x += step) ctx.lineTo(x, y - r() * amp - Math.sin(x * .004 + seed) * amp * .6);
+  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+}
+function seaGrad(y0, c1, c2) { const g = ctx.createLinearGradient(0, y0, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2); return g; }
+function sea(y0, yStart, grad, T, waveCol, x0 = 0, x1 = W) {
+  ctx.fillStyle = grad; ctx.fillRect(x0, yStart, x1 - x0, H - yStart);
+  ctx.strokeStyle = waveCol; ctx.lineWidth = 1.5;
+  for (let i = 0; i < 14; i++) {
+    const yy = y0 + 6 + i * i * 2.2; if (yy < yStart - 2) continue;
+    ctx.globalAlpha = .25 + i * .03; ctx.beginPath();
+    for (let x = x0; x <= x1; x += 18) { const w = Math.sin(x * .03 + T * (1.5 + i * .1) + i * 1.7) * (1 + i * .35); x === x0 ? ctx.moveTo(x, yy + w) : ctx.lineTo(x, yy + w); }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+function label(txt, x, y, opts = {}) {
+  ctx.font = `${opts.bold === false ? '' : '700 '}${opts.size || 16}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const w = ctx.measureText(txt).width + 16, h = (opts.size || 16) + 10;
+  ctx.globalAlpha = (opts.a ?? 1);
+  ctx.fillStyle = opts.bg || 'rgba(0,0,0,.6)'; roundRect(x - w / 2, y - h / 2, w, h, h / 2); ctx.fill();
+  ctx.fillStyle = opts.col || '#fff'; ctx.fillText(txt, x, y + 1); ctx.globalAlpha = 1;
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+// Turkish flag, rendered once flat then drawn in waving slices
+const flagCv = document.createElement('canvas'); flagCv.width = 300; flagCv.height = 200;
+(() => {
+  const c = flagCv.getContext('2d'), G = 200;
+  c.fillStyle = '#E30A17'; c.fillRect(0, 0, 300, 200);
+  c.fillStyle = '#fff'; c.beginPath(); c.arc(.5 * G, 100, .25 * G, 0, 7); c.fill();
+  c.fillStyle = '#E30A17'; c.beginPath(); c.arc(.5625 * G, 100, .2 * G, 0, 7); c.fill();
+  c.fillStyle = '#fff'; c.beginPath(); const sx = .5 * G + .333 * G, r1 = .125 * G, r2 = r1 * .382;
+  for (let i = 0; i < 10; i++) { const a = Math.PI + i * Math.PI / 5, r = i % 2 ? r2 : r1; c.lineTo(sx + Math.cos(a) * r, 100 + Math.sin(a) * r); }
+  c.closePath(); c.fill();
+})();
+function flag(x, y, w, h, T, amp = 1, pole = true, poleLen = h * 2.4) {
+  if (pole) { ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = Math.max(2, w * .025); ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x, y + poleLen); ctx.stroke(); }
+  const N = 30, sw = w / N;
+  for (let i = 0; i < N; i++) {
+    const k = i / N, off = Math.sin(k * 6 - T * 6) * h * .07 * amp * k, shade = Math.cos(k * 6 - T * 6) * .18 * amp * k;
+    ctx.drawImage(flagCv, k * 300, 0, 300 / N + .5, 200, x + i * sw, y + off, sw + .6, h);
+    ctx.fillStyle = shade > 0 ? `rgba(255,255,255,${shade})` : `rgba(0,0,0,${-shade})`;
+    ctx.fillRect(x + i * sw, y + off, sw + .6, h);
+  }
+}
+
+// stick figure: feet at (x,y)
+function stick(o) {
+  const s = o.s || 1, f = o.face || 1, col = o.col || '#151515';
+  ctx.save(); ctx.translate(o.x, o.y);
+  if (o.fall) ctx.rotate(-f * ease(clamp(o.fall)) * 1.5);
+  ctx.scale(s * f, s);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 3.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const ph = o.run, running = ph != null && !o.fall;
+  const bob = running ? Math.abs(Math.sin(ph)) * 3 : 0, lean = running ? 7 : 0;
+  const hip = [0, -24 - bob], neck = [lean, -46 - bob], head = [lean + 2, -55 - bob];
+  const leg = (a, b) => { const kx = hip[0] + Math.sin(a) * 12, ky = hip[1] + Math.cos(a) * 12;
+    ctx.beginPath(); ctx.moveTo(...hip); ctx.lineTo(kx, ky); ctx.lineTo(kx + Math.sin(a - b) * 12, ky + Math.cos(a - b) * 12); ctx.stroke(); };
+  if (running) { const a = Math.sin(ph) * .8; leg(a, Math.max(0, Math.cos(ph)) * 1.1); leg(-a, Math.max(0, -Math.cos(ph)) * 1.1); }
+  else if (o.kneel) { leg(1.3, 2.6); leg(.3, 0); }
+  else { leg(.22, 0); leg(-.22, 0); }
+  ctx.beginPath(); ctx.moveTo(...hip); ctx.lineTo(...neck); ctx.stroke();
+  ctx.beginPath(); ctx.arc(head[0], head[1], 7.5, 0, Math.PI * 2); ctx.fill();
+  const sh = [neck[0] - 1, neck[1] + 4];
+  if (o.point) {
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] + 13, sh[1] - 8); ctx.lineTo(sh[0] + 25, sh[1] - 16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] - 4, sh[1] + 11); ctx.lineTo(sh[0] + 2, sh[1] + 20); ctx.stroke();
+  } else if (o.lift != null) {
+    const ly = lerp(4, -26, o.lift);
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] + 9, sh[1] + ly * .5 + 6); ctx.lineTo(sh[0] + 4, sh[1] + ly); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] - 7, sh[1] + ly * .5 + 6); ctx.lineTo(sh[0] - 4, sh[1] + ly); ctx.stroke();
+    ctx.save(); ctx.translate(sh[0], sh[1] + ly - 5); ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = '#c9a23c'; ctx.fillRect(-6, -13, 12, 24); ctx.fillStyle = '#7d5f1b'; ctx.beginPath(); ctx.moveTo(-6, -13); ctx.lineTo(0, -22); ctx.lineTo(6, -13); ctx.fill(); ctx.restore();
+  } else if (o.flag) {
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] + 9, sh[1] - 6); ctx.lineTo(sh[0] + 10, sh[1] - 18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] + 6, sh[1] + 10); ctx.lineTo(sh[0] + 12, sh[1] + 8); ctx.stroke();
+    ctx.restore();
+    // pole + flag drawn unscaled so it doesn't mirror
+    const px = o.x + (sh[0] + 10) * s * f, py = o.y + (sh[1] - 50) * s;
+    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(px, o.y - 4 * s); ctx.lineTo(px, py); ctx.stroke();
+    if (f > 0) flag(px, py, 46 * s, 30 * s, o.T || 0, 1.3, false);
+    else { ctx.save(); ctx.translate(px, 0); ctx.scale(-1, 1); flag(0, py, 46 * s, 30 * s, o.T || 0, 1.3, false); ctx.restore(); }
+    ctx.save(); ctx.translate(o.x, o.y); ctx.scale(s * f, s); ctx.fillStyle = col; ctx.strokeStyle = col;
+  } else if (o.gun !== false) {
+    const aim = o.aim || 0;
+    ctx.save(); ctx.translate(sh[0] + 2, sh[1] + 6); ctx.rotate(aim);
+    ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.lineTo(11, 2); ctx.moveTo(-4, -2); ctx.lineTo(4, 6); ctx.stroke();
+    ctx.strokeStyle = '#4a3423'; ctx.lineWidth = 3.4; ctx.beginPath(); ctx.moveTo(-8, 5); ctx.lineTo(26, 0); ctx.stroke();
+    if (o.bayonet) { ctx.strokeStyle = '#d8d8d8'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(26, 0); ctx.lineTo(37, -1.5); ctx.stroke(); }
+    ctx.restore();
+  } else {
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] + 4, sh[1] + 11); ctx.lineTo(sh[0] + 6, sh[1] + 20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(...sh); ctx.lineTo(sh[0] - 4, sh[1] + 11); ctx.lineTo(sh[0] - 3, sh[1] + 20); ctx.stroke();
+  }
+  // headgear
+  const hx = head[0], hy = head[1];
+  if (o.hat === 'kabalak') { ctx.fillStyle = '#8b7a4b'; ctx.beginPath(); ctx.ellipse(hx, hy - 4, 8.5, 6, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(hx - 8.5, hy - 5, 17, 3); }
+  else if (o.hat === 'kalpak') { ctx.fillStyle = '#2a211b'; roundRect(hx - 7.5, hy - 15, 15, 11, 3); ctx.fill(); }
+  else if (o.hat === 'slouch') { ctx.fillStyle = '#6f6040'; ctx.fillRect(hx - 12, hy - 6, 24, 2.6); ctx.beginPath(); ctx.ellipse(hx, hy - 6, 6.5, 5, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(hx - 12, hy - 12, 2.5, 7); }
+  else if (o.hat === 'brodie') { ctx.fillStyle = '#4c5a3c'; ctx.beginPath(); ctx.ellipse(hx, hy - 5, 11, 4.5, 0, Math.PI, 0); ctx.fill(); }
+  if (o.band) { ctx.strokeStyle = o.band; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(neck[0] - 3, neck[1] + 8); ctx.lineTo(neck[0] + 3, neck[1] + 8); ctx.stroke(); }
+  ctx.restore();
+}
+
+// warship: waterline at (x,y), facing dir
+function ship(x, y, s, dir, o = {}) {
+  ctx.save(); ctx.translate(x, y + (o.sink || 0) * 110 * s); ctx.rotate((o.tilt || 0) * dir); ctx.scale(s * dir, s);
+  const hull = o.dark ? '#121722' : '#4c5562', top = o.dark ? '#1b2130' : '#6c7684';
+  ctx.fillStyle = hull; ctx.beginPath();
+  ctx.moveTo(-112, -20); ctx.lineTo(100, -20); ctx.lineTo(118, -26); ctx.lineTo(104, 14); ctx.lineTo(-100, 14); ctx.lineTo(-110, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = top; ctx.fillRect(-60, -38, 96, 18); ctx.fillRect(18, -56, 26, 18);
+  ctx.fillStyle = hull; ctx.fillRect(-36, -78, 14, 40); ctx.fillRect(-10, -76, 14, 38);
+  ctx.fillStyle = '#1b1b1b'; ctx.fillRect(-36, -80, 14, 5); ctx.fillRect(-10, -78, 14, 5);
+  ctx.strokeStyle = hull; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(52, -56); ctx.lineTo(52, -102); ctx.moveTo(-78, -38); ctx.lineTo(-78, -88); ctx.moveTo(52, -100); ctx.lineTo(-78, -86); ctx.stroke();
+  ctx.fillStyle = top; roundRect(-96, -30, 30, 11, 4); ctx.fill(); roundRect(62, -30, 30, 11, 4); ctx.fill();
+  ctx.strokeStyle = top; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(-96, -25); ctx.lineTo(-120, -27); ctx.moveTo(92, -25); ctx.lineTo(120, -28); ctx.stroke();
+  if (o.lights) { ctx.fillStyle = '#ffd36b'; for (let i = -80; i <= 80; i += 20) circle(i, -8, 1.8); circle(31, -47, 2); circle(-6, -30, 2); }
+  if (o.burn) { ctx.globalAlpha = o.burn; ctx.fillStyle = '#ff7a1a'; circle(10, -24, 14); ctx.globalAlpha = 1; }
+  ctx.restore();
+}
+function smokeFrom(x, y, rate, dt, col = '#555') { if (R() < rate * dt) add({ type: 'smoke', x, y, vx: -20 - R() * 15, vy: -30 - R() * 15, drag: .7, life: 2.2, size: 5, grow: 12, col }); }
+function mine(x, y, a = .7) {
+  ctx.globalAlpha = a; ctx.strokeStyle = '#0c1218'; ctx.fillStyle = '#0c1218'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, H); ctx.stroke(); circle(x, y, 10);
+  for (let i = 0; i < 8; i++) { const a2 = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a2) * 15, y + Math.sin(a2) * 15); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+}
+// right-side cliff with fort
+function cliff(col, wallCol) {
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(1040, H); ctx.lineTo(1050, 600); ctx.lineTo(1075, 520); ctx.lineTo(1100, 460); ctx.lineTo(1130, 425); ctx.lineTo(1180, 410); ctx.lineTo(1280, 405); ctx.lineTo(1280, H); ctx.fill();
+  ctx.fillStyle = wallCol; ctx.fillRect(1145, 390, 135, 22); for (let x = 1145; x < 1280; x += 18) ctx.fillRect(x, 382, 10, 9);
+  ctx.strokeStyle = '#222'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  [[1160, 386], [1225, 384]].forEach(([cx, cy]) => { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 34, cy - 9); ctx.stroke(); });
+  ctx.lineCap = 'butt';
+}
+function shellArc(sh, T) {
+  const k = (T - sh.t0) / sh.dur; if (k < 0 || k > 1) return;
+  const x = lerp(sh.x0, sh.x1, k), y = lerp(sh.y0, sh.y1, k) - Math.sin(k * Math.PI) * sh.h;
+  ctx.strokeStyle = 'rgba(255,220,150,.5)'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let j = 0; j <= 6; j++) { const kk = Math.max(0, k - j * .03); const xx = lerp(sh.x0, sh.x1, kk), yy = lerp(sh.y0, sh.y1, kk) - Math.sin(kk * Math.PI) * sh.h; j ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+  ctx.stroke(); ctx.fillStyle = '#111'; circle(x, y, 3.5);
+}
+
+// terrain helper
+function terrain(pts) { return x => { for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; const k = (x - x0) / (x1 - x0); return lerp(y0, y1, k * k * (3 - 2 * k)) + Math.sin(x * .05) * 2; } return pts[pts.length - 1][1]; }; }
+function ground(g, col, edge, x0 = 0) {
+  ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x0, H); for (let x = x0; x <= W; x += 8) ctx.lineTo(x, g(x)); ctx.lineTo(W, H); ctx.fill();
+  ctx.strokeStyle = edge; ctx.lineWidth = 4; ctx.beginPath(); for (let x = x0; x <= W; x += 8) x === x0 ? ctx.moveTo(x, g(x)) : ctx.lineTo(x, g(x)); ctx.stroke();
+}
+function bubble(txt, x, y, a) {
+  ctx.globalAlpha = a; ctx.font = 'italic 700 21px Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const w = Math.max(...txt.map(t => ctx.measureText(t).width)) + 36, h = txt.length * 28 + 22;
+  ctx.fillStyle = '#fffaf0'; ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2.5;
+  roundRect(x - w / 2, y - h, w, h, 16); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + w * .18, y - 1); ctx.lineTo(x + w * .3, y + 26); ctx.lineTo(x + w * .3 - 26, y - 1); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + w * .18, y); ctx.lineTo(x + w * .3, y + 26); ctx.lineTo(x + w * .3 - 26, y); ctx.stroke();
+  ctx.fillStyle = '#1a1a1a'; txt.forEach((t, i) => ctx.fillText(t, x, y - h + 25 + i * 28));
+  ctx.globalAlpha = 1;
+}
+
+// ---------- scenes ----------
+let fired = new Set();
+const at = (T, tt, key, fn) => { if (T >= tt && !fired.has(key)) { fired.add(key); fn(); } };
+const SEAY = 405, WL = 545, MINES = [850, 630, 410], MINEY = 585;
+
+const scenes = [
+// 1) Nusret lays mines at night
+{ a: 0, b: 3.5, date: '8 Mart 1915', cap: "Nusret mayın gemisi gece gizlice Erenköy koyuna 26 mayın döşüyor.",
+  update(T, dt) { const nx = 1250 - T * 270; smokeFrom(nx - 4, WL - 48, 14, dt, '#2c2f3a');
+    MINES.forEach((m, i) => at(T, (1250 - m) / 270, 'drop' + i, () => splash(m + 30, WL, .6))); },
+  draw(T) {
+    sky(['#04060f', '#0f1430', '#2a2346'], SEAY); stars(.9, T);
+    ctx.fillStyle = '#f4f0dc'; circle(1080, 110, 30); ctx.fillStyle = '#0f1430'; circle(1093, 103, 27);
+    hills(SEAY, '#0b0d1d', 3, 26, 120);
+    const sg = seaGrad(SEAY, '#13213a', '#03070e');
+    sea(SEAY, SEAY, sg, T, 'rgba(160,190,255,.25)');
+    const nx = 1250 - T * 270;
+    ship(nx, WL, .5, -1, { dark: true, lights: true }); label('Nusret', nx, WL - 75, { size: 14, bg: 'rgba(227,10,23,.85)' });
+    sea(WL, WL + 2, sg, T, 'rgba(160,190,255,.25)');
+    MINES.forEach((m, i) => { const td = (1250 - m) / 270; if (T > td) mine(m + 30, lerp(WL, MINEY, clamp((T - td) / .5)) + Math.sin(T * 2 + i) * 2, .5); });
+    cliff('#07080f', '#131624');
+    const a = fade(T, .2, 3.3, .5);
+    ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '700 104px Georgia, serif'; ctx.fillStyle = '#f4efe6'; ctx.shadowColor = 'rgba(227,10,23,.6)'; ctx.shadowBlur = 30;
+    ctx.fillText('ÇANAKKALE', W / 2, 190); ctx.shadowBlur = 0;
+    ctx.font = '700 52px Georgia, serif'; ctx.fillStyle = '#e30a17'; ctx.fillText('— 1915 —', W / 2, 270); ctx.globalAlpha = 1;
+  } },
+// 2) 18 March naval battle
+{ a: 3.5, b: 8, date: '18 Mart 1915', cap: 'Tabyalar ateşte! İtilaf zırhlıları mayınlara çarpıyor: Bouvet, Irresistible ve Ocean batıyor.',
+  ships: [{ n: 'Bouvet', x0: 160, hit: 2.2, m: 0, s: 1 }, { n: 'Irresistible', x0: -90, hit: 2.9, m: 1, s: .95 }, { n: 'Ocean', x0: -340, hit: 3.6, m: 2, s: .9 }],
+  shells: [],
+  shipX(sh, T) { return lerp(sh.x0, MINES[sh.m], ease(clamp((T - .2) / (sh.hit - .2)))) + Math.max(0, T - sh.hit) * 15; },
+  init() { this.shells = []; },
+  update(T, dt) {
+    const fire = (k, t0, sx, sy, tx, ty, onHit) => at(T, t0, k, () => { this.shells.push({ t0, dur: .8, x0: sx, y0: sy, x1: tx, y1: ty, h: 140, onHit, k }); muzzle(sx, sy); boom(.35); });
+    fire('f1', .4, 1126, 377, 420, WL, null); fire('f2', 1.0, 1191, 375, 700, WL, null);
+    fire('seyit', 1.55, 1191, 375, this.shipX(this.ships[2], 2.35) + 20, WL - 30, 'hit');
+    fire('f3', 2.4, 1126, 377, 600, WL, null); fire('f4', 3.1, 1191, 375, 380, WL, null);
+    for (const sh of this.shells) at(T, sh.t0 + sh.dur, 'land' + sh.k, () => sh.onHit ? explode(sh.x1, sh.y1, .7) : splash(sh.x1, WL, 1.2));
+    // fleet fires back at the fort
+    [[.7, 0], [1.3, 1], [2.0, 2]].forEach(([t0, i]) => at(T, t0, 'back' + i, () => { const s = this.ships[i]; muzzle(this.shipX(s, t0) + 120 * s.s, WL - 27 * s.s); boom(.4); }));
+    [[1.1, 1150, 420], [1.8, 1100, 470], [2.5, 1240, 405]].forEach(([t0, x, y], i) => at(T, t0, 'fort' + i, () => explode(x, y, .6)));
+    for (const s of this.ships) {
+      at(T, s.hit, 'hit' + s.n, () => explode(MINES[s.m] + 30, WL - 10, 1.7, true));
+      const x = this.shipX(s, T), sinking = T > s.hit;
+      if (!sinking || T - s.hit < .8) smokeFrom(x - 20 * s.s, WL - 82 * s.s, 18, dt);
+      if (sinking && T - s.hit < 1.4) { if (R() < 30 * dt) add({ type: 'fire', x: x + (R() - .5) * 60, y: WL - 20, vy: -60, life: .5, size: 10 + R() * 10, grow: 10 }); smokeFrom(x, WL - 30, 25, dt, '#2a2a2a'); }
+    }
+  },
+  draw(T) {
+    sky(['#5e9fd1', '#a9cde8', '#f5dcb2'], SEAY); sun(260, 120, 34, '#fff6d8', 'rgba(255,240,190,.5)');
+    hills(SEAY, '#7d8b99', 5, 30, 110); hills(SEAY + 4, '#6b7a8a', 9, 16, 70);
+    const sg = seaGrad(SEAY, '#3b84a8', '#0e3550');
+    sea(SEAY, SEAY, sg, T, 'rgba(255,255,255,.35)');
+    for (const s of this.ships) {
+      const x = this.shipX(s, T), k = clamp((T - s.hit) / 1.25);
+      ship(x, WL, s.s, 1, { tilt: ease(k) * (s.m === 0 ? .9 : .35), sink: ease(k), burn: T > s.hit ? .7 : 0 });
+    }
+    sea(WL, WL + 2, sg, T, 'rgba(255,255,255,.35)');
+    MINES.forEach((m, i) => { if (!(T > this.ships[i].hit)) mine(m + 30, MINEY + Math.sin(T * 2 + i) * 2, .45); });
+    for (const s of this.ships) if (T > s.hit) label(s.n + ' battı!', MINES[s.m] + 30, WL + 50, { a: fade(T, s.hit + .2, 99), size: 15, bg: 'rgba(10,20,35,.75)' });
+    cliff('#7a6a4c', '#a39a86');
+    // Seyit Onbaşı
+    const lift = clamp((T - .05) / 1.2);
+    stick({ x: 1218, y: 392, s: 1.25, face: -1, hat: 'kabalak', lift: T < 1.4 ? ease(lift) : null, gun: false, col: '#1a1612' });
+    label('Seyit Onbaşı', 1190, 300, { a: fade(T, 0, 2.4), size: 14, bg: 'rgba(227,10,23,.85)' });
+    flag(1255, 250, 26, 18, T, 1, true, 135);
+    for (const sh of this.shells) shellArc(sh, T);
+  } },
+// 3) 25 April landing
+{ a: 8, b: 12, date: '25 Nisan 1915', cap: "Kara çıkarması! ANZAC birlikleri Arıburnu'na çıkıyor, Mehmetçik siperde bekliyor.",
+  g: terrain([[0, 600], [330, 556], [440, 545], [540, 520], [660, 470], [780, 420], [880, 360], [980, 312], [1280, 300]]),
+  boats: [{ arr: .9, sx: 300 }, { arr: 1.3, sx: 250 }, { arr: 1.7, sx: 330 }],
+  init() { this.sol = []; this.boats.forEach((b, bi) => { for (let k = 0; k < 4; k++) { const id = bi * 4 + k;
+      this.sol.push({ id, b: bi, spawn: b.arr + .15 + k * .16, stop: 600 + (id * 67) % 230, speed: 165 + (id * 13) % 40, fall: [1, 4, 6, 9, 11].includes(id) ? b.arr + .9 + (id % 3) * .35 : 99, shot: -1 }); } }); },
+  boatX(b, T) { return b.sx - Math.max(0, b.arr - T) * 280; },
+  solPos(s, T) { const b = this.boats[s.b]; const tt = Math.min(T, s.fall) - s.spawn; const x = Math.min(s.stop, this.boatX(b, s.spawn) + 30 + tt * s.speed); return { x, y: this.g(x), run: x < s.stop ? tt * 9 : null }; },
+  update(T, dt) {
+    [[.3, 0, 860], [1.5, 1, 940], [2.6, 0, 760]].forEach(([t0, i, x], j) => { at(T, t0, 'ws' + j, () => { muzzle(80 + i * 170 + 40, 466); boom(.3); }); at(T, t0 + .5, 'wsh' + j, () => explode(x, this.g(x), .8)); });
+    for (const s of this.sol) {
+      if (T < s.spawn) continue; const p = this.solPos(s, T);
+      if (p.run != null && T < s.fall && R() < 6 * dt) dust(p.x, p.y);
+      at(T, s.spawn, 'jump' + s.id, () => splash(p.x, WL + 2, .3));
+      if (p.run == null && T < s.fall) { const n = Math.floor((T + s.id * .3) / .7); if (n !== s.shot) { if (s.shot >= 0) { muzzle(p.x + 30, p.y - 36); tracer(p.x + 30, p.y - 36, 1050 + (s.id * 37) % 180, 300); shot(.12); } s.shot = n; } }
+    }
+    for (let i = 0; i < 6; i++) {
+      if (T < .6) continue; const n = Math.floor((T + i * .13) / .8); const key = 'd' + i + '_' + n;
+      if (!fired.has(key)) { fired.add(key); if (n > 0) { const x = 1035 + i * 36, y = 318 - 36; muzzle(x - 30, y);
+        const alive = this.sol.filter(s => T > s.spawn && T < s.fall); const tg = alive.length ? this.solPos(alive[(n + i) % alive.length], T) : { x: 500, y: 540 };
+        tracer(x - 30, y, tg.x + (R() - .5) * 30, tg.y - 30); shot(.18); } }
+    }
+  },
+  draw(T) {
+    sky(['#3d5a80', '#d98b66', '#f6c27b'], 480); sun(1110, 250, 40, '#fff1c7', 'rgba(255,200,120,.6)');
+    const sg = seaGrad(470, '#5c7f99', '#1d3d55'); sea(470, 470, sg, T, 'rgba(255,230,200,.35)');
+    ship(90, 474, .32, 1, { dark: false }); ship(260, 476, .36, 1, {});
+    smokeFrom(85, 448, 6, 1 / 60); smokeFrom(255, 447, 6, 1 / 60);
+    for (const b of this.boats) {
+      const x = this.boatX(b, T), y = WL + 4 + Math.sin(T * 3 + b.sx) * 2; const left = this.sol.filter(s => s.b === this.boats.indexOf(b) && T < s.spawn).length;
+      for (let k = 0; k < left; k++) { const hx = x - 40 + k * 22; ctx.fillStyle = '#151515'; circle(hx, y - 22, 6.5); ctx.strokeStyle = '#151515'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(hx, y - 16); ctx.lineTo(hx, y - 4); ctx.stroke(); ctx.fillStyle = '#6f6040'; ctx.fillRect(hx - 10, y - 29, 20, 2.5); }
+      ctx.fillStyle = '#5a3a22'; ctx.beginPath(); ctx.moveTo(x - 62, y - 10); ctx.lineTo(x + 52, y - 10); ctx.lineTo(x + 40, y + 6); ctx.lineTo(x - 54, y + 6); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#3d2715'; ctx.lineWidth = 2; ctx.beginPath(); const oa = Math.sin(T * 8 + b.sx) * .4; ctx.moveTo(x - 10, y - 6); ctx.lineTo(x - 10 - Math.cos(oa) * 40, y + 12 + Math.sin(oa) * 8); ctx.stroke();
+    }
+    // sea foreground over boats' bottoms
+    sea(WL, WL + 4, sg, T, 'rgba(255,230,200,.35)');
+    ground(this.g, '#6b5a3c', '#8d7650');
+    // bushes
+    ctx.fillStyle = '#4e5a2e'; for (let x = 560; x < 1260; x += 53) { circle(x, this.g(x) - 3, 6 + (x % 5)); circle(x + 9, this.g(x + 9) - 2, 5); }
+    for (const s of this.sol) { if (T < s.spawn) continue; const p = this.solPos(s, T);
+      stick({ x: p.x, y: p.y, run: p.run, fall: T > s.fall ? (T - s.fall) / .35 : 0, hat: 'slouch', face: 1, aim: p.run == null ? -.12 : 0, bayonet: true }); }
+    // Ottoman trench
+    for (let i = 0; i < 6; i++) { const x = 1035 + i * 36; stick({ x, y: 322, face: -1, hat: 'kabalak', aim: .1, band: '#e30a17' }); }
+    ctx.fillStyle = '#9b8457'; for (let x = 1005; x < 1260; x += 22) { roundRect(x, 296, 24, 12, 5); ctx.fill(); roundRect(x + 11, 287, 24, 11, 5); ctx.fill(); }
+    flag(1240, 210, 44, 29, T, 1);
+    label('İtilaf (ANZAC)', 470, 450, { a: fade(T, 1, 3.6), size: 15, bg: 'rgba(40,60,90,.85)' });
+    label('Mehmetçik', 1120, 240, { a: fade(T, .5, 3.6), size: 15, bg: 'rgba(227,10,23,.85)' });
+  } },
+// 4) Mustafa Kemal and the 57th Regiment
+{ a: 12, b: 16, date: '25 Nisan 1915 · Arıburnu', cap: "Mustafa Kemal'in emriyle 57. Alay süngü hücumuna kalkıyor!",
+  g: terrain([[0, 540], [300, 528], [520, 495], [700, 440], [860, 380], [1000, 335], [1280, 322]]),
+  init() { this.turks = Array.from({ length: 10 }, (_, i) => ({ i, sx: 1075 + (i % 5) * 44 + (i > 4 ? 22 : 0), st: 1.55 + i * .07, stop: 180 + i * 44, sp: 330 + (i * 17) % 50 }));
+    this.foes = Array.from({ length: 7 }, (_, j) => ({ j, x: 170 + j * 50, fall: [1, 3, 5].includes(j) ? 2.75 + j * .04 : 99, flee: 2.9 + j * .05, shot: -1 })); },
+  tPos(t, T) { const d = Math.max(0, T - t.st) * t.sp; const x = Math.max(t.stop, t.sx - d); return { x, y: this.g(x), run: T > t.st && x > t.stop ? d * .08 : null }; },
+  fPos(f, T) { const x = T > f.flee && f.fall > 50 ? f.x - (T - f.flee) * 260 : f.x; return { x, y: this.g(x), run: T > f.flee && f.fall > 50 ? (T - f.flee) * 22 : null }; },
+  update(T, dt) {
+    at(T, .1, 'kemalPad', () => {});
+    [[.5, 820], [1.15, 930], [1.9, 760]].forEach(([t0, x], j) => at(T, t0, 'art' + j, () => explode(x, this.g(x), .9)));
+    for (const t of this.turks) { const p = this.tPos(t, T); if (p.run != null && R() < 10 * dt) dust(p.x, p.y); }
+    for (const f of this.foes) {
+      if (T > Math.min(f.fall, f.flee) || T < .3) continue; const p = this.fPos(f, T); const n = Math.floor((T + f.j * .21) / .6);
+      if (n !== f.shot) { if (f.shot >= 0) { muzzle(p.x + 32, p.y - 34); tracer(p.x + 32, p.y - 34, 900 + (R() - .5) * 200, 330 + R() * 40); shot(.14); } f.shot = n; }
+    }
+  },
+  draw(T) {
+    sky(['#78b6e0', '#bfe0f2', '#fbe7c6'], 420); sun(330, 110, 30, '#fffbe6', 'rgba(255,250,210,.5)');
+    const sg = seaGrad(420, '#4f8fb3', '#245a7a'); sea(420, 420, sg, T, 'rgba(255,255,255,.3)');
+    hills(470, '#93a37a', 11, 30, 120);
+    ground(this.g, '#7a6744', '#9a8358');
+    ctx.fillStyle = '#5a6a32'; for (let x = 40; x < 1280; x += 61) { circle(x, this.g(x) - 2, 7); circle(x + 8, this.g(x + 8) - 1, 5); }
+    for (const f of this.foes) { const p = this.fPos(f, T); const fl = T > f.fall ? (T - f.fall) / .35 : 0;
+      stick({ x: p.x, y: p.y, face: p.run != null ? -1 : 1, run: p.run, fall: fl, hat: 'brodie', aim: -.05, gun: p.run == null }); }
+    // Mustafa Kemal
+    const kx = 1010, ky = this.g(1010);
+    ctx.fillStyle = '#5e5240'; roundRect(kx - 26, ky - 10, 52, 14, 6); ctx.fill();
+    stick({ x: kx, y: ky - 8, face: -1, hat: 'kalpak', point: true, gun: false, col: '#111' });
+    label('Mustafa Kemal', kx, ky - 100, { size: 15, bg: 'rgba(17,17,17,.85)' });
+    bubble(['"Ben size taarruzu emretmiyorum,', 'ölmeyi emrediyorum!"'], kx - 230, ky - 120, fade(T, .15, 2.6, .25));
+    for (const t of [...this.turks].reverse()) { const p = this.tPos(t, T);
+      stick({ x: p.x, y: p.y, face: -1, run: p.run, hat: 'kabalak', bayonet: true, flag: t.i === 2, T, band: '#e30a17' }); }
+    if (T > 1.6 && T < 3.6) { const a = fade(T, 1.6, 3.6, .3); ctx.save(); ctx.globalAlpha = a; ctx.translate(760 - (T - 1.6) * 120, 250); ctx.rotate(-.06);
+      ctx.font = '900 54px Impact, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#111'; ctx.strokeText('ALLAH ALLAH!', 0, 0); ctx.fillStyle = '#ffd23f'; ctx.fillText('ALLAH ALLAH!', 0, 0); ctx.restore(); }
+    label('57. Alay', 1170, this.g(1170) - 105, { a: fade(T, .9, 1.9), size: 15, bg: 'rgba(227,10,23,.85)' });
+  } },
+// 5) Evacuation
+{ a: 16, b: 18, date: 'Ocak 1916', cap: 'İtilaf kuvvetleri geceleyin gizlice çekiliyor. Boğaz geçilemedi!',
+  update(T, dt) { for (let i = 0; i < 3; i++) smokeFrom(640 + i * 240 - T * 200 + 20, WL - 82 * .8, 10, dt, '#2a2d38'); },
+  draw(T) {
+    sky(['#03050c', '#0c1328', '#1d2547'], SEAY); stars(1, T);
+    ctx.fillStyle = '#f2eed8'; circle(220, 120, 34); ctx.fillStyle = '#0c1328'; circle(234, 112, 30);
+    hills(SEAY, '#0a0d1c', 7, 24, 120);
+    const sg = seaGrad(SEAY, '#101b33', '#02050c'); sea(SEAY, SEAY, sg, T, 'rgba(160,190,255,.22)');
+    for (let i = 0; i < 3; i++) ship(640 + i * 240 - T * 200, WL - i * 4, .8 - i * .06, -1, { dark: true, lights: true });
+    sea(WL, WL + 2, sg, T, 'rgba(160,190,255,.22)');
+    cliff('#05060c', '#10131f');
+    stick({ x: 1200, y: 384, face: -1, hat: 'kabalak', col: '#000', aim: .05 });
+    flag(1240, 290, 40, 27, T, 1);
+  } },
+// 6) Finale
+{ a: 18, b: END, date: null,
+  update(T) { at(T, 0, 'pad', pad); },
+  draw(T) {
+    sky(['#2b1b3d', '#9e3a3a', '#f39a4a', '#ffd38a'], 560);
+    sun(W / 2, 560, 70 + T * 4, '#fff1c4', 'rgba(255,200,120,.75)');
+    hills(600, '#3a1f22', 21, 30, 100);
+    // Şehitler Abidesi
+    const ax = W / 2, ay = 575; ctx.fillStyle = '#1a0f12';
+    [-58, -26, 10, 42].forEach((dx, i) => ctx.fillRect(ax + dx, ay - 100, i % 3 ? 14 : 18, 100)); ctx.fillRect(ax - 70, ay - 118, 140, 20);
+    ctx.fillStyle = '#1a0f12'; ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(0, 620); ctx.quadraticCurveTo(W / 2, 545, W, 620); ctx.lineTo(W, H); ctx.fill();
+    const a = clamp(T / .8);
+    ctx.globalAlpha = a; flag(W / 2 - 160, 40 + (1 - a) * 30, 330, 220, T, 1.1, true, 225); ctx.globalAlpha = 1;
+    const b = clamp((T - .5) / .8);
+    ctx.globalAlpha = b; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `900 ${70 + (1 - b) * 20}px Georgia, serif`; ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(30,5,8,.8)'; ctx.strokeText('ÇANAKKALE GEÇİLMEZ', W / 2, 355);
+    ctx.fillStyle = '#fff8ea'; ctx.fillText('ÇANAKKALE GEÇİLMEZ', W / 2, 355);
+    ctx.globalAlpha = clamp((T - 1.2) / .8); ctx.font = 'italic 24px Georgia, serif'; ctx.fillStyle = '#fff2dc';
+    ctx.fillText('18 Mart 1915 · Tüm şehitlerimizi rahmet ve saygıyla anıyoruz', W / 2, 412); ctx.globalAlpha = 1;
+  } },
+];
+
+// ---------- main loop ----------
+let t = 0, running = false, cur = -1, last = 0;
+function reset() { t = 0; cur = -1; P = []; tracers = []; fired = new Set(); shake = flash = 0; R = mulberry32(1915); scenes.forEach(s => s.init && s.init()); }
+function step(dt) {
+  t = Math.min(END, t + dt);
+  const idx = scenes.findIndex(s => t >= s.a && t < s.b); const i = idx < 0 ? scenes.length - 1 : idx;
+  if (i !== cur) { cur = i; P = []; tracers = []; }
+  const s = scenes[cur]; s.update && s.update(t - s.a, dt); stepFx(dt);
+}
+function render() {
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  const s = scenes[Math.max(0, cur)], T = t - s.a;
+  ctx.save(); if (shake > .3) ctx.translate((R() - .5) * shake, (R() - .5) * shake);
+  ctx.fillStyle = '#000'; ctx.fillRect(-20, -20, W + 40, H + 40);
+  s.draw(T); drawFx(); ctx.restore();
+  if (flash > .01) { ctx.fillStyle = `rgba(255,245,220,${flash})`; ctx.fillRect(0, 0, W, H); }
+  // caption
+  if (s.date) {
+    const a = fade(T, .25, s.b - s.a - .1, .3), off = (1 - a) * 30;
+    ctx.globalAlpha = a; ctx.font = '600 23px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(s.cap).width; ctx.font = '800 18px system-ui, sans-serif'; const dw = ctx.measureText(s.date).width + 28;
+    const bw = Math.min(W - 40, tw + dw + 44), bx = (W - bw) / 2, by = H - 78 + off;
+    ctx.fillStyle = 'rgba(8,8,12,.72)'; roundRect(bx, by, bw, 50, 25); ctx.fill();
+    ctx.fillStyle = '#e30a17'; roundRect(bx + 8, by + 8, dw, 34, 17); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText(s.date, bx + 22, by + 26);
+    ctx.font = '600 23px system-ui, sans-serif'; ctx.fillStyle = '#f4efe6'; ctx.fillText(s.cap, bx + dw + 22, by + 26, bw - dw - 34);
+    ctx.globalAlpha = 1;
+  }
+  // scene transitions
+  let fa = clamp(1 - t / .5);
+  for (const sc of scenes.slice(1)) fa = Math.max(fa, clamp(1 - Math.abs(t - sc.a) / .22));
+  if (fa > 0) { ctx.fillStyle = `rgba(0,0,0,${fa})`; ctx.fillRect(0, 0, W, H); }
+  ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(0, H - 5, W, 5); ctx.fillStyle = '#e30a17'; ctx.fillRect(0, H - 5, W * t / END, 5);
+}
+function loop(now) {
+  if (!running) return;
+  const dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+  step(dt); render();
+  if (t >= END) { running = false; document.getElementById('end').classList.remove('hidden'); return; }
+  requestAnimationFrame(loop);
+}
+function play() {
+  initAudio(); reset(); running = true; last = performance.now();
+  document.getElementById('start').classList.add('hidden'); document.getElementById('end').classList.add('hidden');
+  requestAnimationFrame(loop);
+}
+document.getElementById('playBtn').onclick = play;
+document.getElementById('replayBtn').onclick = play;
+const muteBtn = document.getElementById('mute');
+muteBtn.onclick = () => { muted = !muted; muteBtn.textContent = muted ? '🔇' : '🔊'; };
+// static first frame behind the start screen
+reset(); step(1.6); render(); reset();
+// test hook: render frame at time x
+window.__seek = x => { silent = true; reset(); while (t < x - 1e-6) step(Math.min(1 / 60, x - t)); render(); silent = false; };
+})();
+</script>
+</body>
+</html>

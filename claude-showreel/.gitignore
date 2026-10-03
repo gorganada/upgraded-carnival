@@ -1,0 +1,4 @@
+snapshots/
+.hyperframes/
+node_modules/
+renders/claude-showreel-full.mp4

@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/SplitText.min.js"></script>
+    <script src="vendor/MorphSVGPlugin.min.js"></script>
+    <script src="vendor/DrawSVGPlugin.min.js"></script>
+    <script src="vendor/MotionPathPlugin.min.js"></script>
+    <script src="vendor/CustomEase.min.js"></script>
+    <script src="vendor/CustomBounce.min.js"></script>
+    <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      /* reel identity: ink #101014 · cream #f2ede4 · signal orange #ff4a1c · cobalt #1b2cc1 · blush #ffb3c1 */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #101014; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #101014; }
+      .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.045em; line-height: 0.86; font-kerning: none; }
+      .mono { font-family: "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+      .ch { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+      #c1 { opacity: 1; background-color: #101014; color: #f2ede4; }
+      #c2 { background-color: #ff4a1c; color: #101014; }
+      #c3 { background-color: #1b2cc1; color: #f2ede4; }
+      #c4 { background-color: #f2ede4; color: #101014; }
+      #c5 { background-color: #08080a; color: #f2ede4; }
+      #c6 { background-color: #f2ede4; color: #101014; }
+      #c7 { background-color: #ffb3c1; color: #101014; }
+      #c8 { background-color: #101014; color: #f2ede4; }
+      /* HUD */
+      #hud { position: absolute; inset: 0; pointer-events: none; color: #f2ede4; z-index: 20; }
+      .brk { position: absolute; width: 46px; height: 46px; border-color: currentColor; border-style: solid; border-width: 0; }
+      #b1 { left: 48px; top: 44px; border-left-width: 4px; border-top-width: 4px; } #b2 { right: 48px; top: 44px; border-right-width: 4px; border-top-width: 4px; }
+      #b3 { left: 48px; bottom: 44px; border-left-width: 4px; border-bottom-width: 4px; } #b4 { right: 48px; bottom: 44px; border-right-width: 4px; border-bottom-width: 4px; }
+      .hl { position: absolute; font-size: 22px; }
+      #hTL { left: 112px; top: 54px; } #hTR { right: 112px; top: 54px; text-align: right; } #hBL { left: 112px; bottom: 54px; } #hBR { right: 112px; bottom: 54px; text-align: right; }
+      #rec { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background-color: #ff4a1c; margin-right: 12px; vertical-align: 1px; }
+      #slices { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+      .sl { position: absolute; left: 0; width: 1920px; background-color: #f2ede4; transform-origin: left center; transform: scaleX(0); }
+      #flash { position: absolute; inset: 0; z-index: 31; background-color: #ffffff; opacity: 0; }
+      /* ch1 boot */
+      #grid line { stroke: #f2ede4; stroke-opacity: 0.22; stroke-width: 2; }
+      #c1 .hero { position: absolute; left: 150px; top: 330px; font-size: 330px; }
+      #c1 .sub { position: absolute; left: 160px; top: 660px; font-size: 34px; color: #ff4a1c; }
+      #pct { position: absolute; right: 150px; top: 690px; font-size: 120px; color: #ff4a1c; font-variant-numeric: tabular-nums; }
+      #bar { position: absolute; left: 150px; right: 150px; top: 840px; height: 10px; background-color: #ff4a1c; transform-origin: left center; }
+      /* ch2 kinetic */
+      .row { position: absolute; left: -400px; white-space: nowrap; font-size: 240px; }
+      .row.o { color: rgba(242,237,228,0); -webkit-text-stroke: 4px #101014; }
+      #word { position: absolute; left: 0; right: 0; top: 420px; text-align: center; font-size: 290px; color: #f2ede4; -webkit-text-stroke: 0; z-index: 2; }
+      /* ch3 morph */
+      #c3 svg { position: absolute; left: 610px; top: 190px; }
+      #c3 .lab { position: absolute; left: 150px; top: 860px; font-size: 96px; }
+      /* ch4 three */
+      #gl { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+      #c4 .lab { position: absolute; left: 150px; top: 140px; font-size: 200px; }
+      /* ch5 particles */
+      #pc { position: absolute; inset: 0; }
+      /* ch6 data */
+      #c6 .lab { position: absolute; left: 150px; top: 150px; font-size: 120px; width: 900px; }
+      .b { position: absolute; bottom: 200px; width: 120px; background-color: #101014; transform-origin: 50% 100%; }
+      .bv { position: absolute; bottom: 210px; width: 120px; text-align: center; font-size: 34px; }
+      #c6 svg { position: absolute; left: 0; top: 0; }
+      /* ch7 pig */
+      #pigW { position: absolute; left: 700px; top: 420px; width: 520px; height: 310px; }
+      #pigS { position: absolute; inset: 0; }
+      #c7 .floor { position: absolute; left: 0; right: 0; top: 730px; height: 8px; background-color: #101014; }
+      #c7 .lab { position: absolute; left: 150px; top: 820px; font-size: 110px; }
+      #shadow { position: absolute; left: 820px; top: 712px; width: 280px; height: 40px; border-radius: 50%; background-color: rgba(16,16,20,0.22); }
+      /* ch8 sting */
+      #iris { position: absolute; left: 960px; top: 540px; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background-color: #ff4a1c; }
+      #fin { position: absolute; left: 0; right: 0; top: 380px; text-align: center; font-size: 210px; color: #101014; }
+      #fin2 { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 30px; color: #101014; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="reel" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+      <div id="c1" class="ch">
+        <svg id="grid" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+        <div class="hero big" id="boot">MOTION</div>
+        <div class="sub mono">A 15-SECOND REEL · 8 STUDIES · 128 BPM</div>
+        <div id="pct" class="big">000</div>
+        <div id="bar"></div>
+      </div>
+      <div id="c2" class="ch">
+        <div class="row o big" id="r0" style="top:-30px">MOTION · MOTION · MOTION · MOTION ·</div>
+        <div class="row o big" id="r1" style="top:190px">TIMING · TIMING · TIMING · TIMING ·</div>
+        <div class="row o big" id="r3" style="top:630px">RHYTHM · RHYTHM · RHYTHM · RHYTHM ·</div>
+        <div class="row o big" id="r4" style="top:850px">MOTION · MOTION · MOTION · MOTION ·</div>
+        <div id="word" class="big">MOTION</div>
+      </div>
+      <div id="c3" class="ch">
+        <svg width="700" height="700" viewBox="0 0 700 700">
+          <g id="echoes"></g>
+          <path id="shp" d="M350 90 C 493 90, 610 207, 610 350 C 610 493, 493 610, 350 610 C 207 610, 90 493, 90 350 C 90 207, 207 90, 350 90 Z" fill="#f2ede4"/>
+          <path id="sq" d="M150 110 L 550 110 Q 590 110 590 150 L 590 550 Q 590 590 550 590 L 150 590 Q 110 590 110 550 L 110 150 Q 110 110 150 110 Z" fill="none"/>
+          <path id="st" d="M350 70 L 425 270 L 635 275 L 470 405 L 530 610 L 350 490 L 170 610 L 230 405 L 65 275 L 275 270 Z" fill="none"/>
+          <path id="bl" d="M350 120 C 470 80, 640 200, 590 340 C 640 470, 520 640, 360 590 C 210 650, 70 520, 120 360 C 60 210, 220 160, 350 120 Z" fill="none"/>
+        </svg>
+        <div class="lab big" id="l3">shape is emotion.</div>
+      </div>
+      <div id="c4" class="ch"><canvas id="gl" width="1920" height="1080"></canvas><div class="lab big" id="l4">depth.</div></div>
+      <div id="c5" class="ch"><canvas id="pc" width="1920" height="1080"></canvas></div>
+      <div id="c6" class="ch">
+        <div class="lab big" id="l6">every number moves.</div>
+        <div id="bars"></div>
+        <svg width="1920" height="1080" viewBox="0 0 1920 1080"><path id="trend" d="" fill="none" stroke="#ff4a1c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div id="c7" class="ch">
+        <div class="floor"></div><div id="shadow"></div>
+        <div id="pigW"><div id="pigS"><svg width="520" height="310" viewBox="-260 -300 520 310" style="overflow:visible">
+          <path id="ptail" d="M-150 -120 q-40 -12 -34 -40 q8 -22 28 -8 q14 14 -6 24" fill="none" stroke="#101014" stroke-width="10" stroke-linecap="round"/>
+          <g fill="#101014"><rect x="-110" y="-60" width="36" height="62" rx="14"/><rect x="-58" y="-60" width="36" height="62" rx="14"/><rect x="22" y="-60" width="36" height="62" rx="14"/><rect x="74" y="-60" width="36" height="62" rx="14"/></g>
+          <ellipse cx="0" cy="-110" rx="150" ry="92" fill="#101014"/>
+          <path id="pearL" d="M86 -196 L 70 -258 L 40 -200 Z" fill="#101014"/><path id="pearR" d="M160 -190 L 196 -248 L 128 -214 Z" fill="#101014"/>
+          <circle cx="128" cy="-150" r="76" fill="#101014"/>
+          <circle cx="148" cy="-176" r="9" fill="#ffb3c1"/><circle cx="106" cy="-176" r="9" fill="#ffb3c1"/>
+          <ellipse cx="188" cy="-136" rx="34" ry="28" fill="#ffb3c1"/>
+        </svg></div></div>
+        <div class="lab big" id="l7">weight. timing. appeal.</div>
+      </div>
+      <div id="c8" class="ch"><div id="iris"></div><div id="fin" class="big">motion by Claude</div><div id="fin2" class="mono">HYPERFRAMES · GSAP · THREE.JS · NO TIMELINE EDITOR WAS HARMED</div></div>
+
+      <div id="hud">
+        <div class="brk" id="b1"></div><div class="brk" id="b2"></div><div class="brk" id="b3"></div><div class="brk" id="b4"></div>
+        <div class="hl mono" id="hTL"><span id="rec"></span>CLAUDE — MOTION REEL</div>
+        <div class="hl mono" id="hTR">01 — BOOT</div>
+        <div class="hl mono" id="hBL">00:00:00:00</div>
+        <div class="hl mono" id="hBR">1920×1080 · 30 FPS · 128 BPM</div>
+      </div>
+      <div id="slices"></div>
+      <div id="flash"></div>
+      <audio id="snd" src="assets/audio/reel.wav" data-start="0" data-duration="15" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+      gsap.registerPlugin(SplitText, MorphSVGPlugin, DrawSVGPlugin, MotionPathPlugin, CustomEase, CustomBounce);
+      const hash = (n, s = 1) => { const x = Math.sin(n * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+      const B = 60 / 128, CH = 4 * B; // one beat, one chapter (4 beats)
+      const T = (i) => i * CH;           // chapter start
+      const NAMES = ["01 — BOOT", "02 — KINETIC TYPE", "03 — SHAPE MORPH", "04 — 3D / DEPTH", "05 — PARTICLES", "06 — DATA IN MOTION", "07 — CHARACTER", "08 — STING"];
+      const HUDCOL = ["#f2ede4", "#101014", "#f2ede4", "#101014", "#f2ede4", "#101014", "#101014", "#f2ede4"];
+
+      // ---------- three.js wave of cubes (chapter 4) ----------
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("gl"), antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(1920, 1080, false); renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.shadowMap.enabled = true;
+      const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf2ede4);
+      const cam = new THREE.PerspectiveCamera(32, 1920 / 1080, 0.1, 200);
+      const NX = 22, NZ = 12, cubes = new THREE.InstancedMesh(new THREE.BoxGeometry(0.82, 1, 0.82), new THREE.MeshStandardMaterial({ roughness: 0.55 }), NX * NZ);
+      cubes.castShadow = true; cubes.receiveShadow = true; scene.add(cubes);
+      const col = new THREE.Color(), dummy = new THREE.Object3D();
+      for (let i = 0; i < NX * NZ; i++) { const x = i % NX, z = Math.floor(i / NX); col.set(hash(i, 3) < 0.12 ? 0xff4a1c : (z % 2 ? 0x101014 : 0x23232a)); cubes.setColorAt(i, col); }
+      scene.add(new THREE.HemisphereLight(0xffffff, 0xb8a990, 1.6));
+      const sun = new THREE.DirectionalLight(0xffffff, 2.4); sun.position.set(-8, 16, 10); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+      Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20 }); scene.add(sun);
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0xf2ede4, roughness: 1 }));
+      floor.rotation.x = -Math.PI / 2; floor.position.y = -1.2; floor.receiveShadow = true; scene.add(floor);
+      function render3D(t) {
+        const u = Math.max(0, t - T(3));
+        for (let i = 0; i < NX * NZ; i++) {
+          const x = i % NX - NX / 2 + 0.5, z = Math.floor(i / NX) - NZ / 2 + 0.5, d = Math.hypot(x, z);
+          const h = 1 + 2.4 * Math.max(0, Math.sin(d * 0.55 - u * 7.5)) * Math.min(1, u * 1.5);
+          dummy.position.set(x, -1.2 + h / 2, z); dummy.scale.set(1, h, 1); dummy.rotation.y = 0; dummy.updateMatrix(); cubes.setMatrixAt(i, dummy.matrix);
+        }
+        cubes.instanceMatrix.needsUpdate = true;
+        const a = -0.6 + u * 0.45; cam.position.set(Math.sin(a) * 27, 15 - u * 2, Math.cos(a) * 27); cam.lookAt(2.5, -1, 0);
+        renderer.render(scene, cam);
+      }
+
+      // ---------- particles (chapter 5) ----------
+      const pc = document.getElementById("pc"), pctx = pc.getContext("2d");
+      let PTS = [];
+      function buildParticles() {
+        const off = document.createElement("canvas"); off.width = 1920; off.height = 1080; const o = off.getContext("2d");
+        o.fillStyle = "#fff"; o.font = '800 360px "Bricolage Grotesque"'; o.textAlign = "center"; o.textBaseline = "middle"; o.fillText("CLAUDE", 960, 560);
+        const d = o.getImageData(0, 0, 1920, 1080).data; let k = 0;
+        for (let y = 0; y < 1080; y += 9) for (let x = 0; x < 1920; x += 9) if (d[(y * 1920 + x) * 4 + 3] > 128) {
+          const a = hash(k, 5) * Math.PI * 2, r = 700 + hash(k, 6) * 900;
+          PTS.push({ x, y, sx: 960 + Math.cos(a) * r, sy: 540 + Math.sin(a) * r, d: hash(k, 7), c: hash(k, 8) < 0.18 ? "#ff4a1c" : "#f2ede4" }); k++;
+        }
+      }
+      function renderParticles(t) {
+        const u = t - T(4); pctx.clearRect(0, 0, 1920, 1080);
+        if (u < 0 || u > CH + 0.05) return;
+        const ease = gsap.parseEase("expo.out"), easeIn = gsap.parseEase("power3.in");
+        for (const p of PTS) {
+          const k = ease(Math.min(1, Math.max(0, (u - p.d * 0.35) / 0.9)));
+          let x = p.sx + (p.x - p.sx) * k, y = p.sy + (p.y - p.sy) * k;
+          const e = easeIn(Math.min(1, Math.max(0, (u - 1.35 - p.d * 0.1) / 0.5)));
+          if (e > 0) { const dx = p.x - 960, dy = p.y - 560, l = Math.hypot(dx, dy) || 1; x += dx / l * e * 1400; y += dy / l * e * 1400 - e * 60; }
+          const wob = Math.sin(u * 9 + p.d * 30) * 1.5 * (1 - e);
+          pctx.fillStyle = p.c; pctx.fillRect(x + wob, y, 5, 5);
+        }
+      }
+
+      document.fonts.ready.then(() => {
+        buildParticles();
+        const tl = gsap.timeline({ paused: true });
+        const tc = document.getElementById("hBL"), tr = document.getElementById("hTR"), wordEl = document.getElementById("word");
+        const WORDS = ["MOTION", "IS A", "LANGUAGE.", "SPEAK IT."];
+        tl.eventCallback("onUpdate", () => {
+          const t = tl.time();
+          if (t >= T(3) - 0.1 && t < T(4) + 0.1) render3D(t);
+          renderParticles(t);
+          const s = Math.floor(t), f = Math.floor((t - s) * 30);
+          tc.textContent = "00:00:" + String(s).padStart(2, "0") + ":" + String(f).padStart(2, "0");
+          const ci = Math.min(7, Math.floor(t / CH)); if (tr.textContent !== NAMES[ci]) tr.textContent = NAMES[ci];
+          const wi = Math.min(3, Math.max(0, Math.floor((t - T(1)) / B))); if (wordEl.textContent !== WORDS[wi]) wordEl.textContent = WORDS[wi];
+        });
+        window.addEventListener("hf-seek", (e) => { const t = e.detail.time; if (t >= T(3) - 0.1 && t < T(4) + 0.1) render3D(t); renderParticles(t); });
+
+        // chapter switching on the downbeat + glitch slices + HUD retint
+        const sl = document.getElementById("slices");
+        for (let k = 0; k < 5; k++) { const d = document.createElement("div"); d.className = "sl"; d.id = "sl" + k; d.style.top = (k * 216 + 40) + "px"; d.style.height = (60 + hash(k, 2) * 90) + "px"; sl.appendChild(d); }
+        for (let i = 1; i < 8; i++) {
+          const t = T(i);
+          tl.set("#c" + i, { opacity: 0 }, t); tl.set("#c" + (i + 1), { opacity: 1 }, t);
+          tl.set("#hud", { color: HUDCOL[i] }, t);
+          for (let k = 0; k < 5; k++) {
+            const id = "#sl" + k, c = ["#ff4a1c", "#f2ede4", "#1b2cc1", "#101014"][(i + k) % 4];
+            tl.set(id, { backgroundColor: c, transformOrigin: k % 2 ? "right center" : "left center" }, t - 0.12);
+            tl.fromTo(id, { scaleX: 0 }, { scaleX: 1, duration: 0.07, ease: "power4.in", immediateRender: false }, t - 0.12 + k * 0.008);
+            tl.to(id, { scaleX: 0, transformOrigin: k % 2 ? "left center" : "right center", duration: 0.1, ease: "power4.out" }, t + 0.02 + k * 0.01);
+          }
+        }
+        tl.fromTo("#rec", { opacity: 1 }, { opacity: 0.15, duration: B / 2, yoyo: true, repeat: 31, ease: "steps(1)" }, 0);
+        tl.fromTo(".brk", { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "expo.out", stagger: 0.05 }, 0);
+
+        // ---- 01 BOOT
+        const grid = document.getElementById("grid"); let gl = "";
+        for (let i = 1; i < 12; i++) gl += '<line class="gx" x1="' + i * 160 + '" y1="0" x2="' + i * 160 + '" y2="1080"/>';
+        for (let j = 1; j < 7; j++) gl += '<line class="gy" x1="0" y1="' + j * 154 + '" x2="1920" y2="' + j * 154 + '"/>';
+        grid.innerHTML = gl;
+        tl.fromTo("#grid line", { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.5, ease: "power2.out", stagger: 0.02 }, 0.0);
+        const bs = SplitText.create("#boot", { type: "chars" });
+        tl.fromTo(bs.chars, { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.45, ease: "expo.out", stagger: 0.035 }, 0.15);
+        tl.fromTo("#c1 .sub", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 0.55);
+        tl.fromTo("#bar", { scaleX: 0 }, { scaleX: 1, duration: 1.5, ease: "power2.inOut" }, 0.25);
+        const pctEl = document.getElementById("pct"), po = { v: 0 };
+        tl.fromTo(po, { v: 0 }, { v: 100, duration: 1.5, ease: "power2.inOut", onUpdate: () => (pctEl.textContent = String(Math.round(po.v)).padStart(3, "0")) }, 0.25);
+        tl.to(bs.chars, { scaleY: 1.25, transformOrigin: "50% 100%", duration: 0.08, yoyo: true, repeat: 1, stagger: 0.02 }, T(1) - 0.32);
+
+        // ---- 02 KINETIC TYPE: marquee rows + the word changes on every beat
+        [["#r0", 1], ["#r1", -1], ["#r3", 1], ["#r4", -1]].forEach(([id, dir], k) => {
+          tl.fromTo(id, { x: dir > 0 ? -600 : 0 }, { x: dir > 0 ? 0 : -600, duration: CH, ease: "none" }, T(1));
+        });
+        WORDS.forEach((w, k) => {
+          const at = T(1) + k * B;
+          tl.fromTo("#word", { scale: 1.25, skewX: -8 }, { scale: 1, skewX: 0, duration: 0.25, ease: "expo.out", immediateRender: false }, at);
+        });
+
+        // ---- 03 SHAPE MORPH with echo trail
+        const echoes = document.getElementById("echoes");
+        for (let e = 0; e < 5; e++) echoes.innerHTML += '<path class="echo" id="e' + e + '" d="' + document.getElementById("shp").getAttribute("d") + '" fill="none" stroke="#f2ede4" stroke-width="3" opacity="' + (0.5 - e * 0.09) + '"/>';
+        const targets = ["#sq", "#st", "#bl", "#shp"];
+        const orig = document.getElementById("shp").getAttribute("d");
+        tl.fromTo("#shp", { scale: 0, rotation: -90, transformOrigin: "50% 50%" }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(1.8)" }, T(2));
+        targets.slice(0, 3).forEach((tg, k) => {
+          const at = T(2) + (k + 1) * B * 0.95;
+          tl.to("#shp", { morphSVG: { shape: tg, type: "rotational" }, rotation: (k + 1) * 45, duration: 0.32, ease: "power4.inOut" }, at);
+          for (let e = 0; e < 5; e++) tl.to("#e" + e, { morphSVG: { shape: tg, type: "rotational" }, rotation: (k + 1) * 45, transformOrigin: "50% 50%", duration: 0.32, ease: "power4.inOut" }, at + 0.04 * (e + 1));
+        });
+        const l3 = SplitText.create("#l3", { type: "words", mask: "words" });
+        tl.fromTo(l3.words, { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.05 }, T(2) + 0.25);
+
+        // ---- 04 DEPTH (three.js) title
+        const l4 = SplitText.create("#l4", { type: "chars" });
+        tl.fromTo(l4.chars, { yPercent: -120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.5, ease: "bounce.out", stagger: 0.04 }, T(3) + 0.2);
+
+        // ---- 06 DATA
+        const VALS = [34, 58, 41, 77, 63, 92, 118], bars = document.getElementById("bars");
+        let dPath = "";
+        VALS.forEach((v, k) => {
+          const x = 1000 + k * 120 + (k * 8), h = v * 4.4;
+          bars.innerHTML += '<div class="b" id="bb' + k + '" style="left:' + x + 'px;height:' + h + 'px;background-color:' + (k === 6 ? "#ff4a1c" : "#101014") + '"></div><div class="bv mono" id="bv' + k + '" style="left:' + x + 'px;bottom:' + (210 + h) + 'px">0</div>';
+          dPath += (k ? " L" : "M") + (x + 60) + " " + (880 - h - 90);
+        });
+        document.getElementById("trend").setAttribute("d", dPath);
+        const l6 = SplitText.create("#l6", { type: "words", mask: "words" });
+        tl.fromTo(l6.words, { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "expo.out", stagger: 0.05 }, T(5) + 0.05);
+        VALS.forEach((v, k) => {
+          tl.fromTo("#bb" + k, { scaleY: 0 }, { scaleY: 1, duration: 0.55, ease: "back.out(1.6)" }, T(5) + 0.15 + k * 0.07);
+          const e = document.getElementById("bv" + k), o = { v: 0 };
+          tl.fromTo(o, { v: 0 }, { v, duration: 0.55, ease: "power2.out", onUpdate: () => (e.textContent = Math.round(o.v)) }, T(5) + 0.15 + k * 0.07);
+        });
+        tl.fromTo("#trend", { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.7, ease: "power2.inOut" }, T(5) + 0.8);
+
+        // ---- 07 CHARACTER: two hops with anticipation, squash/stretch, arcs, follow-through
+        tl.set("#pigW", { x: -900 }, 0); tl.set("#shadow", { x: -900 }, 0);
+        [[-900, -380, T(6) + 0.05], [-380, 0, T(6) + 0.85]].forEach(([x0, x1, h]) => {
+          tl.to("#pigS", { scaleX: 1.2, scaleY: 0.78, transformOrigin: "50% 100%", duration: 0.1, ease: "power2.out" }, h);
+          tl.to("#pigS", { scaleX: 0.86, scaleY: 1.2, duration: 0.08 }, h + 0.1);
+          tl.to("#pigW", { motionPath: { path: [{ x: x0, y: 0 }, { x: (x0 + x1) / 2, y: -260 }, { x: x1, y: 0 }], curviness: 1.4 }, duration: 0.45, ease: "sine.inOut" }, h + 0.1);
+          tl.to("#pigS", { scaleX: 1, scaleY: 1, duration: 0.15 }, h + 0.22);
+          tl.to("#pigS", { scaleX: 1.28, scaleY: 0.74, duration: 0.05, ease: "power2.in" }, h + 0.52);
+          tl.to("#pigS", { scaleX: 1, scaleY: 1, duration: 0.3, ease: "elastic.out(1,0.4)" }, h + 0.57);
+          tl.to(["#pearL", "#pearR"], { rotation: -26, svgOrigin: "100 -200", duration: 0.12 }, h + 0.16);
+          tl.to(["#pearL", "#pearR"], { rotation: 0, svgOrigin: "100 -200", duration: 0.5, ease: "elastic.out(1,0.3)" }, h + 0.55);
+          tl.to("#shadow", { x: (x0 + x1) / 2, scale: 0.5, duration: 0.22, ease: "sine.out" }, h + 0.1);
+          tl.to("#shadow", { x: x1, scale: 1, duration: 0.23, ease: "sine.in" }, h + 0.32);
+        });
+        const l7 = SplitText.create("#l7", { type: "words" });
+        tl.fromTo(l7.words, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: CustomBounce.create("rb", { strength: 0.5, squash: 1.5 }), stagger: B / 2 }, T(6) + 0.1);
+
+        // ---- 08 STING
+        tl.fromTo("#iris", { scale: 0 }, { scale: 260, duration: 0.5, ease: "expo.in" }, T(7) + 0.02);
+        const fs = SplitText.create("#fin", { type: "chars" });
+        tl.fromTo(fs.chars, { yPercent: 100, opacity: 0, rotation: 8 }, { yPercent: 0, opacity: 1, rotation: 0, duration: 0.45, ease: "back.out(2.4)", stagger: 0.03, immediateRender: false }, T(7) + 0.45);
+        tl.set(fs.chars, { opacity: 0 }, 0);
+        tl.fromTo("#fin2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out", immediateRender: false }, T(7) + 0.9);
+        tl.set("#fin2", { opacity: 0 }, 0);
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 0.9, duration: 0.05, immediateRender: false }, 14.2);
+        tl.to("#flash", { opacity: 0, duration: 0.35, ease: "power2.out" }, 14.25);
+        tl.fromTo("#fin", { scale: 1 }, { scale: 1.06, duration: 0.6, ease: "power2.out", immediateRender: false }, 14.2);
+
+        window.__timelines["reel"] = tl;
+      });
+    </script>
+  </body>
+</html>

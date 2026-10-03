@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/lottie.min.js"></script>
+    <script src="assets/kesik.js"></script>
+    <style>
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Bricolage Grotesque"; font-weight: 800; src: url("assets/fonts/bric-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212; }
+      @font-face { font-family: "Caveat"; font-weight: 700; src: url("assets/fonts/caveat-latinext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F; }
+
+      /* palette: kraft #e9d8b4 · ink #2b211b · paper #fffaf0 · US blue #2f4e8a · UK red #c23b2e · highlight #f6c445 */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #e9d8b4; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #e9d8b4; color: #2b211b; }
+      #paper { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 42%, rgba(255,250,235,0.55) 0%, rgba(255,250,235,0) 60%), radial-gradient(ellipse at 50% 50%, rgba(80,50,20,0) 55%, rgba(80,50,20,0.32) 100%); }
+      #fibers { position: absolute; inset: 0; background-image: radial-gradient(rgba(120,90,50,0.16) 1.4px, rgba(120,90,50,0) 2px); background-size: 23px 29px; }
+      .disp { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -0.03em; }
+      .hand { font-family: "Caveat", cursive; font-weight: 700; }
+      #brandtag { position: absolute; left: 70px; top: 120px; font-size: 44px; padding: 6px 22px 8px; background-color: #2b211b; color: #fffaf0; border-radius: 12px; transform: rotate(-3deg); }
+      #stage { position: absolute; left: 0; top: 220px; width: 1080px; height: 1040px; }
+      .beat { position: absolute; inset: 0; opacity: 0; }
+      .st { position: absolute; filter: drop-shadow(8px 10px 0 rgba(70,45,20,0.28)); }
+      .st > div { position: absolute; inset: 0; }
+      .st svg { position: absolute; left: 0; top: 0; overflow: visible; }
+      .lot { position: absolute; }
+      .stamp { position: absolute; border: 8px solid #c23b2e; color: #c23b2e; border-radius: 16px; padding: 4px 26px; font-size: 92px; }
+      .big { position: absolute; font-size: 210px; line-height: 0.9; }
+      .lab { position: absolute; font-size: 54px; line-height: 1; }
+      #caps { position: absolute; left: 60px; right: 60px; top: 1300px; height: 300px; }
+      .chunk { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; opacity: 0; }
+      .w { position: relative; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 88px; line-height: 1.05; color: #fffaf0;
+        -webkit-text-stroke: 14px #2b211b; paint-order: stroke fill; padding: 2px 14px 8px; border-radius: 18px; }
+      .w.on { background-color: #f6c445; color: #2b211b; -webkit-text-stroke: 0; box-shadow: 6px 8px 0 #2b211b; }
+      .bubble { position: absolute; background-color: #fffaf0; border: 7px solid #2b211b; border-radius: 40px; padding: 26px 34px; font-size: 64px; line-height: 1.05; box-shadow: 10px 12px 0 rgba(70,45,20,0.28); }
+      .vs { position: absolute; top: 120px; width: 470px; height: 760px; border-radius: 30px; border: 7px solid #2b211b; box-shadow: 10px 12px 0 rgba(70,45,20,0.28); }
+      .vs .n { position: absolute; left: 0; right: 0; text-align: center; color: #fffaf0; -webkit-text-stroke: 10px #2b211b; paint-order: stroke fill; }
+      #halo { position: absolute; left: 450px; top: 300px; width: 200px; height: 60px; border: 14px solid #f6c445; border-radius: 50%; }
+      #grain { position: absolute; inset: -50%; width: 200%; height: 200%; opacity: 0.13; pointer-events: none;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="domuz" data-start="0" data-duration="43" data-width="1080" data-height="1920">
+      <div id="paper"></div><div id="fibers"></div>
+      <div id="brandtag" class="hand">NeAlaka 🪶</div>
+      <div id="stage"></div>
+      <div id="caps"></div>
+      <div id="grain"></div>
+      <audio id="snd" src="assets/audio/domuz.wav" data-start="0" data-duration="43" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      // ---------------- helpers ----------------
+      function hash(n, seed) { var x = Math.sin(n * 127.1 + (seed || 1) * 311.7) * 43758.5453; return (x - Math.floor(x)) * 2 - 1; }
+      var stage = document.getElementById("stage"), BEATS = [], LOT = [], BOILS = [];
+      window.__hfLottie = window.__hfLottie || [];
+      function beat() { var d = document.createElement("div"); d.className = "beat"; d.id = "b" + BEATS.length; stage.appendChild(d); BEATS.push(d); return d; }
+      var BOX = { person: [-130, -420, 280, 440], pig: [-250, -270, 440, 290], ship: [-280, -400, 560, 460], cannon: [-60, -90, 260, 150], plant: [-90, -180, 180, 200] };
+      // place a sticker so the art's origin lands at (x, y); returns wrapper id (animate it), boil goes on the inner div.
+      function stick(parent, id, kind, art, x, y, s, flip) {
+        var b = BOX[kind], w = document.createElement("div"); w.className = "st"; w.id = id;
+        w.style.left = (x + (flip ? -(b[0] + b[2]) : b[0]) * s) + "px"; w.style.top = (y + b[1] * s) + "px"; w.style.width = b[2] * s + "px"; w.style.height = b[3] * s + "px";
+        w.innerHTML = '<div id="' + id + '-i"><svg width="' + b[2] * s + '" height="' + b[3] * s + '" viewBox="' + b.join(" ") + '"' + (flip ? ' style="transform:scaleX(-1)"' : "") + ">" + art + "</svg></div>";
+        parent.appendChild(w); BOILS.push("#" + id + "-i"); return "#" + id;
+      }
+      function lottieAt(parent, id, code, x, y, size) {
+        var d = document.createElement("div"); d.className = "lot"; d.id = id; d.style.left = x + "px"; d.style.top = y + "px"; d.style.width = size + "px"; d.style.height = size + "px";
+        parent.appendChild(d);
+        var a = lottie.loadAnimation({ container: d, renderer: "svg", loop: true, autoplay: false, path: "assets/lottie/" + code + ".json" });
+        window.__hfLottie.push(a); return "#" + id;
+      }
+      function el(parent, tag, cls, id, html, style) { var d = document.createElement(tag); if (cls) d.className = cls; if (id) d.id = id; d.innerHTML = html; if (style) d.style.cssText = style; parent.appendChild(d); return "#" + id; }
+      function wob(cx, cy, rx, ry, seed, pct, rot) {
+        var N = 16, pts = [], r = (rot || 0) * Math.PI / 180;
+        for (var i = 0; i < N; i++) { var a = i / N * Math.PI * 2, k = 1 + hash(i * 13 + 5, seed) * (pct / 100), px = Math.cos(a) * rx * k, py = Math.sin(a) * ry * k;
+          pts.push([cx + px * Math.cos(r) - py * Math.sin(r), cy + px * Math.sin(r) + py * Math.cos(r)]); }
+        var d = "M" + ((pts[0][0] + pts[N - 1][0]) / 2).toFixed(1) + " " + ((pts[0][1] + pts[N - 1][1]) / 2).toFixed(1);
+        for (var j = 0; j < N; j++) { var p = pts[j], q = pts[(j + 1) % N]; d += " Q" + p[0].toFixed(1) + " " + p[1].toFixed(1) + " " + ((p[0] + q[0]) / 2).toFixed(1) + " " + ((p[1] + q[1]) / 2).toFixed(1); }
+        return d + "Z";
+      }
+
+      // ---------------- script (beat start times, caption text) ----------------
+      var S = [
+        [0.0, "Bir domuz yüzünden iki ülke neredeyse savaşa girdi."],
+        [3.6, "Yıl 1859. San Juan Adası. Sınırın nereden geçtiğini kimse bilmiyor."],
+        [8.0, "Amerikalı bir çiftçi, patateslerini yiyen bir domuz görüyor… ve vuruyor."],
+        [12.4, "Sorun şu: domuz bir İngiliz şirketine aitti."],
+        [16.4, "İngilizler çiftçiyi tutuklamakla tehdit ediyor. Amerika adaya 66 asker yolluyor."],
+        [20.6, "İngiltere'nin cevabı: üç savaş gemisi."],
+        [24.6, "Kısa sürede 461 Amerikan askeri ve 14 top… karşılarında 2.140 İngiliz ve 5 gemi."],
+        [29.6, "Ama İngiliz amiral saldırı emrini reddediyor."],
+        [34.4, "İki ordu adayı 12 yıl boyunca paylaşıyor… hatta birlikte parti veriyorlar."],
+        [38.6, "Bu savaşın tek kaybı: domuz."],
+      ];
+      var END = 43;
+      for (var i = 0; i < S.length; i++) beat();
+
+      // B0 hook
+      var b0 = BEATS[0];
+      el(b0, "div", "st", "f-us", '<div id="f-us-i"><svg width="360" height="220" viewBox="0 0 360 220">' + KESIK.flagUS(360, 220) + "</svg></div>", "left:60px;top:120px;width:360px;height:220px");
+      el(b0, "div", "st", "f-uk", '<div id="f-uk-i"><svg width="360" height="220" viewBox="0 0 360 220">' + KESIK.flagUK(360, 220) + "</svg></div>", "left:660px;top:120px;width:360px;height:220px");
+      BOILS.push("#f-us-i", "#f-uk-i");
+      stick(b0, "pig0", "pig", KESIK.pig({}), 600, 820, 1.55);
+      el(b0, "div", "stamp disp", "stamp0", "1859", "left:110px;top:430px;transform:rotate(-12deg)");
+      lottieAt(b0, "l-mind", "1f92f", 720, 380, 220);
+
+      // B1 map
+      var b1 = BEATS[1];
+      var map = '<rect x="0" y="0" width="940" height="900" rx="26" fill="#9fc6c9" stroke="#2b211b" stroke-width="7"/>' +
+        '<path d="' + wob(160, 420, 300, 120, 3, 6, -38) + '" fill="#cdb98a" stroke="#2b211b" stroke-width="6"/>' +
+        '<path d="M300 0 C 420 120, 600 120, 700 210 C 780 280, 860 250, 940 280 L940 0 Z" fill="#cdb98a" stroke="#2b211b" stroke-width="6"/>' +
+        '<path d="M520 900 C 600 760, 760 700, 940 720 L940 900 Z" fill="#cdb98a" stroke="#2b211b" stroke-width="6"/>' +
+        '<path id="isl" d="' + wob(540, 450, 86, 70, 9, 12, 20) + '" fill="#e8b24a" stroke="#2b211b" stroke-width="6"/>' +
+        '<path id="lnUS" d="M330 120 C 400 300, 410 500, 420 900" fill="none" stroke="#2f4e8a" stroke-width="10" stroke-dasharray="26 18" stroke-linecap="round"/>' +
+        '<path id="lnUK" d="M620 160 C 680 320, 690 520, 640 880" fill="none" stroke="#c23b2e" stroke-width="10" stroke-dasharray="26 18" stroke-linecap="round"/>';
+      el(b1, "div", "st", "map", '<div id="map-i"><svg width="940" height="900" viewBox="0 0 940 900">' + map + "</svg></div>", "left:70px;top:40px;width:940px;height:900px");
+      BOILS.push("#map-i");
+      el(b1, "div", "lab hand", "lb-isl", "San Juan", "left:480px;top:560px;font-size:60px");
+      el(b1, "div", "lab hand", "lb-us", "– – ABD'ye göre sınır", "left:80px;top:955px;color:#2f4e8a");
+      el(b1, "div", "lab hand", "lb-uk", "– – İngiltere'ye göre", "left:560px;top:955px;color:#c23b2e");
+      el(b1, "div", "lab disp", "lb-q", "?", "left:505px;top:300px;font-size:150px;color:#2b211b");
+      lottieAt(b1, "l-eyes", "1f440", 760, 600, 200);
+
+      // B2 farmer shoots
+      var b2 = BEATS[2];
+      [700, 880, 1000].forEach(function (x, k) { stick(b2, "pl" + k, "plant", KESIK.potatoPlant(), x - 100 * (k === 2 ? 0.2 : 0), 860 - k * 30, 1.0); });
+      stick(b2, "pig2", "pig", KESIK.pig({}), 760, 900, 1.0);
+      stick(b2, "pig2x", "pig", KESIK.pig({ xeyes: true }), 760, 900, 1.0);
+      stick(b2, "farm", "person", KESIK.person({ side: "farmer", rifle: "aim", armR: -80, beard: "#7a4a2b", mood: "angry" }), 210, 960, 1.45);
+      lottieAt(b2, "l-pot", "1f954", 840, 300, 190);
+      lottieAt(b2, "l-boom", "1f4a5", 300, 280, 380);
+
+      // B3 owner
+      var b3 = BEATS[3];
+      stick(b3, "pig3", "pig", KESIK.pig({ xeyes: true }), 540, 870, 1.3);
+      el(b3, "div", "stamp disp", "stamp3", "İNGİLİZ MALI", "left:250px;top:380px;font-size:74px;transform:rotate(-8deg)");
+      stick(b3, "uk3", "person", KESIK.person({ side: "uk", rifle: true, mood: "angry", mustache: "#4a3020" }), 860, 1000, 1.0);
+      lottieAt(b3, "l-grim", "1f62c", 90, 80, 230);
+
+      // B4 66 soldiers
+      var b4 = BEATS[4];
+      for (var k = 0; k < 5; k++) stick(b4, "us4" + k, "person", KESIK.person({ side: "us", rifle: true, mustache: k % 2 ? "#4a3020" : null }), 120 + k * 120, 980 - (k % 2) * 30, 0.95);
+      el(b4, "div", "big disp", "n66", "66", "left:660px;top:160px;color:#2f4e8a");
+      el(b4, "div", "lab hand", "lb66", "Amerikan askeri", "left:640px;top:360px;font-size:62px");
+      lottieAt(b4, "l-huff", "1f624", 790, 520, 220);
+
+      // B5 ships
+      var b5 = BEATS[5];
+      var waves = "";
+      for (var r = 0; r < 4; r++) waves += '<path d="M-20 ' + (40 + r * 70) + " q 60 -34 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0" + '" fill="none" stroke="#2f6f8a" stroke-width="8" stroke-linecap="round"/>';
+      for (k = 0; k < 3; k++) stick(b5, "sh" + k, "ship", KESIK.ship({}), 260 + k * 300, 760 + (k % 2) * 60, 0.62 - k * 0.04);
+      el(b5, "div", "st", "waves", '<div id="waves-i"><svg width="1080" height="320" viewBox="0 0 1080 320">' + '<rect x="0" y="40" width="1080" height="300" fill="#7fb0c0"/>' + waves + "</svg></div>", "left:0;top:760px;width:1080px;height:320px");
+      BOILS.push("#waves-i");
+      el(b5, "div", "big disp", "n3", "3", "left:430px;top:40px;color:#c23b2e");
+      el(b5, "div", "lab hand", "lb3", "savaş gemisi", "left:560px;top:120px;font-size:70px");
+
+      // B6 versus
+      var b6 = BEATS[6];
+      el(b6, "div", "vs", "vsL", '<div class="n disp" id="n461" style="top:400px;font-size:150px">0</div><div class="n hand" style="top:560px;font-size:64px;-webkit-text-stroke:0;color:#fffaf0">asker</div><div class="n disp" id="n14" style="top:640px;font-size:70px">14 top</div>', "left:50px;background-color:#2f4e8a");
+      el(b6, "div", "vs", "vsR", '<div class="n disp" id="n2140" style="top:400px;font-size:150px">0</div><div class="n hand" style="top:560px;font-size:64px;-webkit-text-stroke:0;color:#fffaf0">asker</div><div class="n disp" id="n5" style="top:640px;font-size:70px">5 gemi</div>', "left:560px;background-color:#c23b2e");
+      stick(b6, "us6", "person", KESIK.person({ side: "us", rifle: true, mood: "angry" }), 285, 520, 0.85);
+      stick(b6, "uk6", "person", KESIK.person({ side: "uk", rifle: true, mood: "angry" }), 795, 520, 0.85);
+      el(b6, "div", "disp", "vsx", "VS", "position:absolute;left:440px;top:20px;font-size:130px;color:#f6c445;-webkit-text-stroke:12px #2b211b;paint-order:stroke fill");
+      lottieAt(b6, "l-scream", "1f631", 430, 840, 220);
+
+      // B7 admiral
+      var b7 = BEATS[7];
+      stick(b7, "adm", "person", KESIK.person({ side: "admiral", mustache: "#d8d0c0", armR: -120, mood: "smug" }), 300, 1000, 1.5);
+      el(b7, "div", "bubble hand", "bub", "“Bir domuz yüzünden iki büyük ulusu savaşa sokmam!”", "left:430px;top:110px;width:600px");
+      lottieAt(b7, "l-roll", "1f644", 760, 640, 220);
+
+      // B8 party
+      var b8 = BEATS[8];
+      stick(b8, "us8", "person", KESIK.person({ side: "us", armR: -150 }), 350, 980, 1.2);
+      stick(b8, "uk8", "person", KESIK.person({ side: "uk", armR: -150 }), 730, 980, 1.2, true);
+      el(b8, "div", "stamp disp", "stamp8", "12 YIL", "left:330px;top:40px;transform:rotate(6deg)");
+      lottieAt(b8, "l-shake", "1f91d", 440, 330, 200);
+      lottieAt(b8, "l-party", "1f389", 820, 140, 200);
+      lottieAt(b8, "l-party2", "1f389", 60, 160, 180);
+
+      // B9 the only casualty
+      var b9 = BEATS[9];
+      stick(b9, "pig9", "pig", KESIK.pig({ xeyes: true }), 610, 760, 1.3);
+      el(b9, "div", "", "halo", "", "");
+      el(b9, "div", "disp", "nealaka", "Ne alaka?", "position:absolute;left:0;right:0;top:880px;text-align:center;font-size:130px;color:#c23b2e;-webkit-text-stroke:12px #2b211b;paint-order:stroke fill");
+
+      // ---------------- captions (chunks of ≤3 words, evenly timed by length) ----------------
+      var caps = document.getElementById("caps"), CAPT = [];
+      S.forEach(function (sb, bi) {
+        var t0 = sb[0] + 0.25, t1 = (bi + 1 < S.length ? S[bi + 1][0] : END - 1.6) - 0.2;
+        var words = sb[1].split(" "), tot = words.reduce(function (a, w) { return a + w.length + 2; }, 0), t = t0;
+        for (var c = 0; c < words.length; c += 3) {
+          var ch = document.createElement("div"); ch.className = "chunk"; ch.id = "c" + bi + "_" + c; caps.appendChild(ch);
+          var ws = words.slice(c, c + 3), wt = [];
+          ws.forEach(function (w, j) { var sp = document.createElement("span"); sp.className = "w"; sp.id = ch.id + "w" + j; sp.textContent = w; ch.appendChild(sp);
+            var d = (t1 - t0) * (w.length + 2) / tot; wt.push([sp.id, t, t + d]); t += d; });
+          CAPT.push({ id: ch.id, a: wt[0][1], b: wt[wt.length - 1][2], words: wt });
+        }
+      });
+
+      // ---------------- timeline ----------------
+      var tl = gsap.timeline({ paused: true });
+      // boil: every sticker re-poses on twos/threes, like stop-motion paper
+      var renders = [];
+      tl.eventCallback("onUpdate", function () { for (var i = 0; i < renders.length; i++) renders[i](); });
+      BOILS.forEach(function (sel, k) {
+        var e = document.querySelector(sel);
+        renders.push(function () { var step = Math.floor(tl.time() * 30 / 3); gsap.set(e, { x: hash(step * 3 + k * 97, 2) * 1.6, y: hash(step * 3 + 1 + k * 97, 2) * 1.6, rotation: hash(step * 3 + 2 + k * 97, 2) * 0.6 }); });
+      });
+      // paper grain jitter (seek-safe)
+      renders.push(function () { var st = Math.floor(tl.time() * 12); gsap.set("#grain", { x: hash(st, 7) * 120, y: hash(st, 8) * 120 }); });
+      // page-swap between beats: old sheet flies off, new sheet slides in
+      S.forEach(function (sb, i) {
+        var T = sb[0], id = "#b" + i;
+        if (i === 0) { tl.fromTo(id, { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, 0.05); return; }
+        tl.to("#b" + (i - 1), { x: -1150, rotation: -9, duration: 0.42, ease: "power3.in" }, T - 0.3);
+        tl.set("#b" + (i - 1), { opacity: 0 }, T + 0.12);
+        tl.fromTo(id, { opacity: 1, x: 1150, rotation: 9 }, { opacity: 1, x: 0, rotation: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, T - 0.05);
+      });
+      tl.set("#b0", { opacity: 0 }, 0); tl.set("#b0", { opacity: 1 }, 0.05);
+      // captions
+      CAPT.forEach(function (c) {
+        tl.fromTo("#" + c.id, { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.12, ease: "back.out(2)" }, c.a);
+        tl.set("#" + c.id, { opacity: 0 }, c.b);
+        c.words.forEach(function (w) { tl.set("#" + w[0], { attr: { class: "w on" } }, w[1]); tl.set("#" + w[0], { attr: { class: "w" } }, w[2]); });
+      });
+      function pop(sel, at, from) { tl.fromTo(sel, { scale: 0, rotation: from || -12 }, { scale: 1, rotation: 0, duration: 0.42, ease: "back.out(2.4)" }, at); }
+      function slideIn(sel, at, dx, dy) { tl.fromTo(sel, { x: dx || 0, y: dy || 0, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.5)" }, at); }
+
+      // B0
+      slideIn("#f-us", 0.3, -500, 0); slideIn("#f-uk", 0.3, 500, 0);
+      tl.fromTo("#pig0", { y: -1200, rotation: -20 }, { y: 0, rotation: 0, duration: 0.7, ease: "bounce.out" }, 0.6);
+      pop("#stamp0", 1.5, -40); pop("#l-mind", 2.0);
+      // B1
+      var t = S[1][0];
+      tl.fromTo("#isl", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.5, ease: "back.out(3)" }, t + 0.5);
+      tl.fromTo(["#lnUS", "#lnUK"], { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.6 }, t + 1.0);
+      slideIn("#lb-isl", t + 0.7, 0, 20); slideIn("#lb-us", t + 1.2); slideIn("#lb-uk", t + 1.8);
+      pop("#lb-q", t + 2.4); tl.to("#lb-q", { rotation: 14, duration: 0.25, yoyo: true, repeat: 3, ease: "sine.inOut" }, t + 2.9); pop("#l-eyes", t + 2.6);
+      tl.fromTo("#map", { scale: 1 }, { scale: 1.06, duration: 4.0, ease: "sine.inOut" }, t);
+      // B2
+      t = S[2][0];
+      [0, 1, 2].forEach(function (k) { pop("#pl" + k, t + 0.3 + k * 0.1); });
+      slideIn("#pig2", t + 0.5, 400, 0); pop("#l-pot", t + 0.9);
+      tl.fromTo("#pig2-i", { rotation: 0 }, { rotation: -5, duration: 0.18, yoyo: true, repeat: 7, ease: "sine.inOut", transformOrigin: "20% 100%", immediateRender: false }, t + 1.0);
+      slideIn("#farm", t + 1.6, -500, 0);
+      tl.set("#pig2x", { opacity: 0 }, 0);
+      tl.fromTo("#l-boom", { scale: 0, opacity: 1 }, { scale: 1.2, opacity: 1, duration: 0.18, ease: "power4.out" }, t + 3.0);
+      tl.to("#l-boom", { opacity: 0, duration: 0.3 }, t + 3.6);
+      tl.set("#l-boom", { opacity: 0 }, 0);
+      tl.set("#pig2", { opacity: 0 }, t + 3.05); tl.set("#pig2x", { opacity: 1 }, t + 3.05);
+      tl.fromTo("#pig2x", { rotation: 0 }, { rotation: 180, y: -40, duration: 0.5, ease: "back.out(2)", transformOrigin: "50% 70%" }, t + 3.1);
+      tl.fromTo("#stage", { x: 0 }, { x: 14, duration: 0.05, yoyo: true, repeat: 5 }, t + 3.0);
+      // B3
+      t = S[3][0];
+      tl.set("#pig3", { rotation: 180, transformOrigin: "50% 70%" }, 0);
+      tl.fromTo("#stamp3", { scale: 2.6, opacity: 0, rotation: -20 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.22, ease: "power4.in" }, t + 1.3);
+      tl.fromTo("#b3", { y: 0 }, { y: 10, duration: 0.05, yoyo: true, repeat: 3 }, t + 1.52);
+      slideIn("#uk3", t + 2.0, 400, 0); pop("#l-grim", t + 2.6);
+      // B4
+      t = S[4][0];
+      for (k = 0; k < 5; k++) tl.fromTo("#us4" + k, { x: -900 }, { x: 0, duration: 0.9, ease: "power2.out" }, t + 1.6 + k * 0.12);
+      for (k = 0; k < 5; k++) tl.fromTo("#us4" + k + "-i", { y: 0 }, { y: -14, duration: 0.15, yoyo: true, repeat: 5, ease: "sine.inOut" }, t + 1.6 + k * 0.12);
+      pop("#n66", t + 2.4, 20); slideIn("#lb66", t + 2.7, 0, 30); pop("#l-huff", t + 0.4);
+      var n66 = document.getElementById("n66"), o66 = { v: 0 };
+      tl.fromTo(o66, { v: 0 }, { v: 66, duration: 0.8, ease: "power2.out", onUpdate: function () { n66.textContent = Math.round(o66.v); } }, t + 2.4);
+      // B5
+      t = S[5][0];
+      for (k = 0; k < 3; k++) {
+        tl.fromTo("#sh" + k, { x: 900 }, { x: 0, duration: 1.2, ease: "power2.out" }, t + 0.4 + k * 0.35);
+        tl.fromTo("#sh" + k, { rotation: -2 }, { rotation: 2, duration: 0.8, yoyo: true, repeat: 3, ease: "sine.inOut" }, t + 0.4 + k * 0.35);
+      }
+      tl.fromTo("#waves", { x: 0 }, { x: -60, duration: 4, ease: "none" }, t);
+      pop("#n3", t + 1.8, 20); slideIn("#lb3", t + 2.1, 0, 30);
+      // B6
+      t = S[6][0];
+      slideIn("#vsL", t + 0.2, -600, 0); slideIn("#vsR", t + 0.2, 600, 0); pop("#us6", t + 0.6); pop("#uk6", t + 0.7);
+      pop("#vsx", t + 1.0, 30);
+      [["#n461", 461, t + 0.8], ["#n2140", 2140, t + 2.4]].forEach(function (q) {
+        var e = document.querySelector(q[0]), o = { v: 0 };
+        tl.fromTo(o, { v: 0 }, { v: q[1], duration: 1.2, ease: "power2.out", onUpdate: function () { e.textContent = Math.round(o.v).toLocaleString("tr-TR"); } }, q[2]);
+      });
+      pop("#n14", t + 1.6); pop("#n5", t + 3.4); pop("#l-scream", t + 3.6);
+      // B7
+      t = S[7][0];
+      slideIn("#adm", t + 0.3, -400, 0);
+      tl.fromTo("#bub", { scale: 0, transformOrigin: "10% 100%" }, { scale: 1, duration: 0.45, ease: "back.out(2)" }, t + 1.1);
+      pop("#l-roll", t + 2.4);
+      // B8
+      t = S[8][0];
+      slideIn("#us8", t + 0.3, -500, 0); slideIn("#uk8", t + 0.3, 500, 0);
+      pop("#l-shake", t + 0.9); tl.fromTo("#stamp8", { scale: 2.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "power4.in" }, t + 1.5);
+      pop("#l-party", t + 2.2); pop("#l-party2", t + 2.5);
+      tl.fromTo(["#us8", "#uk8"], { y: 0 }, { y: -40, duration: 0.25, yoyo: true, repeat: 5, ease: "power1.out", stagger: 0.12 }, t + 2.2);
+      // B9
+      t = S[9][0];
+      tl.fromTo("#pig9", { rotation: 180, y: 300, transformOrigin: "50% 70%", opacity: 0 }, { rotation: 180, y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, t + 0.2);
+      tl.to("#pig9", { y: -30, duration: 0.9, yoyo: true, repeat: 3, ease: "sine.inOut" }, t + 1.0);
+      tl.fromTo("#halo", { opacity: 0, y: -60 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(2)" }, t + 1.2);
+      tl.to("#halo", { y: -30, duration: 0.9, yoyo: true, repeat: 3, ease: "sine.inOut" }, t + 1.8);
+      tl.fromTo("#nealaka", { scale: 0, rotation: -10 }, { scale: 1, rotation: -3, duration: 0.5, ease: "back.out(2.5)" }, END - 1.8);
+      window.__timelines["domuz"] = tl;
+    </script>
+  </body>
+</html>

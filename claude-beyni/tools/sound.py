@@ -6,7 +6,7 @@ Writes assets/audio/beyin.wav (44.1 kHz, 16-bit, stereo).
 import math, random, struct, wave, os
 
 SR = 44100
-DUR = 36.0
+DUR = 60.0
 N = int(SR * DUR)
 L = [0.0] * N
 R = [0.0] * N
@@ -86,24 +86,24 @@ def pad(t0, t1, freqs, amp, attack=1.5, release=1.5):
 
 
 # ---------------- bed ----------------
-pad(0.0, 16.9, [55.0, 82.41, 110.0, 164.81], 0.20, attack=2.0)          # A minor-ish drone
-pad(16.0, 23.4, [49.0, 73.42, 98.0, 146.83], 0.22, attack=1.0)          # darker during thinking
-pad(22.8, 29.6, [55.0, 82.41, 110.0, 130.81, 164.81], 0.18, attack=0.6)  # tools
-pad(28.8, 36.0, [65.41, 98.0, 130.81, 164.81, 196.0], 0.22, attack=1.2, release=1.4)  # warm C major for the answer
+pad(0.0, 28.5, [55.0, 82.41, 110.0, 164.81], 0.20, attack=2.0)          # A minor-ish drone
+pad(27.6, 39.4, [49.0, 73.42, 98.0, 146.83], 0.22, attack=1.0)          # darker during thinking
+pad(38.8, 49.6, [55.0, 82.41, 110.0, 130.81, 164.81], 0.18, attack=0.6)  # tools
+pad(48.8, 60.0, [65.41, 98.0, 130.81, 164.81, 196.0], 0.22, attack=1.2, release=1.4)  # warm C major for the answer
 
 # ---------------- S1: soru ----------------
 TOKENS = ["Çan", "akkale", " Savaşı", "'nı", " 20", " saniyede", " anlat"]
 nch = sum(len(t) for t in TOKENS)
 for k in range(nch):
-    click(0.6 + k * 0.042, 0.14, pan=rng.uniform(-0.3, 0.3))
-TYPED = 0.6 + nch * 0.042
+    click(0.8 + k * 0.06, 0.14, pan=rng.uniform(-0.3, 0.3))
+TYPED = 0.8 + nch * 0.06
 tone(TYPED + 0.25, 0.25, 160, 0.5, 70, decay=8)            # send press
 noise(TYPED + 0.25, 0.25, 0.25, 1200, 300, "hit")
 for i in range(7):                                          # tokenize pops, rising
     tone(TYPED + 0.55 + i * 0.07, 0.18, 520 * 2 ** (i / 7), 0.18, kind="tri", decay=10, pan=-0.6 + i * 0.2)
 
 # ---------------- transitions ----------------
-T1, T2, T3, T4, T5 = 4.6, 10.2, 16.4, 23.0, 29.0
+T1, T2, T3, T4, T5 = 8, 17, 28, 39, 49
 whoosh(T1 + 0.4, 1.1)
 whoosh(T2 + 0.4, 1.1)
 whoosh(T3 + 0.5, 1.6, amp=0.6, low=120, high=2500)          # gravitational lens: deep
@@ -131,37 +131,38 @@ for i in range(7):
 for k in range(6):                                          # lines drawing: soft glides
     tone(A3 + 1.1 + k * 0.12, 0.8, 300 + k * 40, 0.07, 600 + k * 80, attack=0.2)
 bell(A3 + 2.2, 880, 0.14); bell(A3 + 2.35, 1046.5, 0.12)
-t0 = A3 + 3.5
+t0 = A3 + 5.7
 for n in range(2, 49):                                      # layer counter, accelerating
     click(t0 + 2.2 * math.sqrt((n - 1) / 47), 0.08, pan=rng.uniform(-0.4, 0.4))
 
 # ---------------- S4: thinking ----------------
 A4 = T3 + 0.5
+LI = 1.35
 for k in range(5):
-    tone(A4 + 0.4 + k * 0.85, 0.3, 392, 0.08, kind="tri", decay=7)
-noise(A4 + 0.4 + 2 * 0.85 + 0.55, 0.45, 0.35, 3000, 900, "lin")   # strike-through scratch
-bell(A4 + 0.4 + 3 * 0.85 + 0.3, 659.25, 0.16)                       # accepted idea
+    tone(A4 + 0.4 + k * LI, 0.3, 392, 0.08, kind="tri", decay=7)
+noise(A4 + 0.4 + 2 * LI + 0.55, 0.45, 0.35, 3000, 900, "lin")   # strike-through scratch
+bell(A4 + 0.4 + 3 * LI + 0.3, 659.25, 0.16)                       # accepted idea
 for k in range(2):
-    tone(A4 + 2.6 + k * 0.5, 0.25, 140, 0.3, 90, decay=10)          # rejected branches
-bell(A4 + 3.8, 783.99, 0.16)
+    tone(A4 + 4.2 + k * 0.6, 0.25, 140, 0.3, 90, decay=10)          # rejected branches
+bell(A4 + 5.6, 783.99, 0.16)
 
 # ---------------- S5: tools ----------------
 A5 = T4 + 0.3
-TT = [A5 + 0.9, A5 + 1.6, A5 + 3.6, A5 + 4.6]
+TT = [A5 + 1.2, A5 + 2.4, A5 + 5.0, A5 + 6.4]
 for t in TT[:3]:
     for k in range(4): click(t + k * 0.035, 0.1)
-tone(TT[1] + 0.3, 1.6, 220, 0.08, 880, attack=0.2)                  # progress riser
+tone(TT[1] + 0.3, 2.2, 220, 0.08, 880, attack=0.2)                  # progress riser
 tone(TT[2] + 0.2, 0.3, 300, 0.2, 600, decay=8)                      # thumbnail pop
 bell(TT[3], 1046.5, 0.18); bell(TT[3] + 0.12, 1568.0, 0.14)         # success
 
 # ---------------- S6: answer ----------------
 A6 = T5 + 0.5
-for base in (A6 + 0.4, A6 + 2.15):
+for base in (A6 + 0.6, A6 + 3.2):
     for k in range(3): tone(base + 0.2 + k * 0.08, 0.6, 330 + k * 30, 0.05, 520 + k * 50, attack=0.1)
     click(base + 1.1, 0.15)
-impact(A6 + 1.6, 0.6); bell(A6 + 1.6, 523.25, 0.2)
-impact(A6 + 3.35, 1.0); bell(A6 + 3.35, 659.25, 0.22); bell(A6 + 3.4, 783.99, 0.18)
-noise(A6 + 3.7, 0.9, 0.12, 4000, 12000, "bell", hp=True)            # underline shimmer
+impact(A6 + 2.4, 0.6); bell(A6 + 2.4, 523.25, 0.2)
+impact(A6 + 5.0, 1.0); bell(A6 + 5.0, 659.25, 0.22); bell(A6 + 5.05, 783.99, 0.18)
+noise(A6 + 5.6, 0.9, 0.12, 4000, 12000, "bell", hp=True)            # underline shimmer
 
 # ---------------- master ----------------
 fade_out = int(0.9 * SR)

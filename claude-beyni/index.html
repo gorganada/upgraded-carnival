@@ -121,7 +121,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="36" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
 
       <!-- ============ S1 — SORU ============ -->
       <div id="s1" class="scene">
@@ -220,7 +220,7 @@
       </div>
 
       <div id="blackout"></div>
-      <audio id="soundtrack" src="assets/audio/beyin.wav" data-start="0" data-duration="36" data-track-index="9" data-volume="1"></audio>
+      <audio id="soundtrack" src="assets/audio/beyin.wav" data-start="0" data-duration="60" data-track-index="9" data-volume="1"></audio>
     </div>
 
     <script>
@@ -232,7 +232,7 @@
       function el(tag, attrs, parent) { var e = document.createElementNS(SVGNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; }
 
       // Scene windows (seconds). Transitions start at these times.
-      var T1 = 4.6, T2 = 10.2, T3 = 16.4, T4 = 23.0, T5 = 29.0, END = 36;
+      var T1 = 8, T2 = 17, T3 = 28, T4 = 39, T5 = 49, END = 60;
       var TOKENS = ["Çan", "akkale", " Savaşı", "'nı", " 20", " saniyede", " anlat"];
       var IDS = ["31207", "8812", "50291", "1745", "410", "22918", "6634"];
 
@@ -325,13 +325,13 @@
       }
 
       // ---- S1: SORU (0 – 4.6)
-      breathe("#s1-glow", 0, 4.8);
+      breathe("#s1-glow", 0, 8.4);
       tl.fromTo("#s1-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, 0.1);
       tl.fromTo("#s1-h", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 0.15);
       tl.fromTo("#s1-box", { y: 80, opacity: 0, scale: 0.96 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 0.3);
-      chars.forEach(function (ch, k) { tl.set(ch, { fontSize: 84 }, 0.6 + k * 0.042); });
-      var TYPED = 0.6 + chars.length * 0.042; // ≈ 2.07s
-      tl.fromTo("#s1-caret", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "steps(1)", yoyo: true, repeat: 7 }, 0.3);
+      chars.forEach(function (ch, k) { tl.set(ch, { fontSize: 84 }, 0.8 + k * 0.06); });
+      var TYPED = 0.8 + chars.length * 0.06; // ≈ 3.02s
+      tl.fromTo("#s1-caret", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "steps(1)", yoyo: true, repeat: 11 }, 0.3);
       tl.fromTo("#s1-send", { scale: 1 }, { scale: 0.82, duration: 0.1, ease: "power2.in", yoyo: true, repeat: 1 }, TYPED + 0.25);
       tl.fromTo("#s1-box", { borderColor: "#3a302a" }, { borderColor: "#d97757", duration: 0.2 }, TYPED + 0.3);
       // tokenize: borders appear, chips spread, IDs pop
@@ -346,7 +346,7 @@
 
       // ---- S2: TOKEN → SAYI (4.6 – 10.2)
       var A2 = T1 + 0.3;
-      breathe("#s2-glow", T1, 5.8);
+      breathe("#s2-glow", T1, 9.2);
       tl.fromTo("#s2-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A2);
       TOKENS.forEach(function (t, i) {
         tl.fromTo("#vrow" + i + " .vchip", { x: -120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, A2 + i * 0.08);
@@ -354,7 +354,7 @@
       barEls.forEach(function (b, k) {
         var r = Math.floor(k / 18), c = k % 18;
         tl.fromTo(b, { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "back.out(2.2)" }, A2 + 0.45 + r * 0.09 + c * 0.025);
-        tl.to(b, { scaleY: 0.35 + ((k * 37) % 60) / 100, duration: 0.55, ease: "sine.inOut", yoyo: true, repeat: 5 }, A2 + 1.6 + ((k * 13) % 10) * 0.05);
+        tl.to(b, { scaleY: 0.35 + ((k * 37) % 60) / 100, duration: 0.55, ease: "sine.inOut", yoyo: true, repeat: 11 }, A2 + 1.6 + ((k * 13) % 10) * 0.05);
       });
       tl.fromTo("#s2-h", { y: 70, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.9, ease: "power3.out" }, A2 + 0.6);
       tl.fromTo("#s2-vec", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, A2 + 1.5);
@@ -364,7 +364,7 @@
 
       // ---- S3: DİKKAT (10.2 – 16.4)
       var A3 = T2 + 0.3;
-      breathe("#s3-glow", T2, 6.2);
+      breathe("#s3-glow", T2, 11.2);
       tl.fromTo("#s3-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A3);
       tl.fromTo("#s3-h", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, A3 + 0.05);
       for (i = 0; i < 7; i++) tl.fromTo("#node" + i, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)" }, A3 + 0.2 + i * 0.07);
@@ -376,52 +376,52 @@
       tl.fromTo("#pct5", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, A3 + 2.35);
       tl.fromTo("#s3-note", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, A3 + 2.5);
       // ...and again, layer after layer
-      tl.fromTo("#s3-layers", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, A3 + 3.3);
+      tl.fromTo("#s3-layers", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, A3 + 5.5);
       var lnEl = document.getElementById("s3-ln"), lnObj = { v: 1 };
-      tl.to(lnObj, { v: 48, duration: 2.2, ease: "power1.in", onUpdate: function () { lnEl.textContent = Math.round(lnObj.v) + (lnObj.v > 47.5 ? "…" : ""); } }, A3 + 3.5);
+      tl.to(lnObj, { v: 48, duration: 2.2, ease: "power1.in", onUpdate: function () { lnEl.textContent = Math.round(lnObj.v) + (lnObj.v > 47.5 ? "…" : ""); } }, A3 + 5.7);
       for (var L2 = 1; L2 <= 3; L2++) {
-        tl.fromTo("#layer" + L2, { opacity: 0, y: 0 }, { opacity: 0.55 - L2 * 0.12, y: -L2 * 46, duration: 0.6, ease: "power3.out" }, A3 + 3.4 + L2 * 0.35);
+        tl.fromTo("#layer" + L2, { opacity: 0, y: 0 }, { opacity: 0.55 - L2 * 0.12, y: -L2 * 46, duration: 0.6, ease: "power3.out" }, A3 + 5.6 + L2 * 0.35);
         document.querySelectorAll("#layer" + L2 + " .att").forEach(function (p, k) {
-          tl.fromTo(p, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.out" }, A3 + 3.4 + L2 * 0.35 + k * 0.05);
+          tl.fromTo(p, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.out" }, A3 + 5.6 + L2 * 0.35 + k * 0.05);
         });
       }
 
       // ---- S4: DÜŞÜNME (16.4 – 23.0)
-      var A4 = T3 + 0.5;
-      breathe("#s4-glow", T3, 6.6);
+      var A4 = T3 + 0.5, LI = 1.35;
+      breathe("#s4-glow", T3, 11.2);
       tl.fromTo("#s4-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A4);
       tl.fromTo("#s4-h", { opacity: 0, y: 50, filter: "blur(12px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.0, ease: "power2.out" }, A4 + 0.1);
       document.querySelectorAll("#s4-lines .tl").forEach(function (ln, k) {
-        tl.fromTo(ln, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + k * 0.85);
+        tl.fromTo(ln, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + k * LI);
       });
-      tl.fromTo("#s4-rej .strike", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, A4 + 0.4 + 2 * 0.85 + 0.55);
-      tl.to("#s4-rej", { opacity: 0.35, duration: 0.4 }, A4 + 0.4 + 2 * 0.85 + 0.9);
-      tl.fromTo("#s4-acc .hl", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + 3 * 0.85 + 0.3);
-      tl.fromTo("#s4-acc", { color: "#a99c90" }, { color: "#f3ece2", duration: 0.4 }, A4 + 0.4 + 3 * 0.85 + 0.3);
+      tl.fromTo("#s4-rej .strike", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, A4 + 0.4 + 2 * LI + 0.55);
+      tl.to("#s4-rej", { opacity: 0.35, duration: 0.4 }, A4 + 0.4 + 2 * LI + 0.9);
+      tl.fromTo("#s4-acc .hl", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, A4 + 0.4 + 3 * LI + 0.3);
+      tl.fromTo("#s4-acc", { color: "#a99c90" }, { color: "#f3ece2", duration: 0.4 }, A4 + 0.4 + 3 * LI + 0.3);
       // decision tree
-      tl.fromTo("#troot", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.4, ease: "back.out(3)" }, A4 + 1.0);
+      tl.fromTo("#troot", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.4, ease: "back.out(3)" }, A4 + 1.5);
       for (var k2 = 0; k2 < 3; k2++) {
-        tl.fromTo("#br" + k2, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.inOut" }, A4 + 1.3 + k2 * 0.25);
-        tl.fromTo("#lf" + k2, { opacity: 0 }, { opacity: 1, duration: 0.2 }, A4 + 1.8 + k2 * 0.25);
-        tl.fromTo("#lt" + k2, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.3 }, A4 + 1.85 + k2 * 0.25);
+        tl.fromTo("#br" + k2, { attr: { "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: 0.6, ease: "power2.inOut" }, A4 + 1.8 + k2 * 0.3);
+        tl.fromTo("#lf" + k2, { opacity: 0 }, { opacity: 1, duration: 0.2 }, A4 + 2.3 + k2 * 0.3);
+        tl.fromTo("#lt" + k2, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.3 }, A4 + 2.35 + k2 * 0.3);
       }
       [0, 1].forEach(function (k3) {
-        var at = A4 + 2.6 + k3 * 0.5;
+        var at = A4 + 4.2 + k3 * 0.6;
         tl.fromTo("#lx" + k3, { opacity: 0, scale: 2, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, at);
         tl.to(["#br" + k3, "#lf" + k3, "#lt" + k3], { opacity: 0.25, duration: 0.4 }, at + 0.2);
       });
-      tl.fromTo("#lf2", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.9, duration: 0.35, ease: "power2.out", yoyo: true, repeat: 3 }, A4 + 3.8);
-      tl.fromTo("#lt2", { fill: "#a99c90" }, { fill: "#f3ece2", duration: 0.3 }, A4 + 3.8);
+      tl.fromTo("#lf2", { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.9, duration: 0.35, ease: "power2.out", yoyo: true, repeat: 3 }, A4 + 5.6);
+      tl.fromTo("#lt2", { fill: "#a99c90" }, { fill: "#f3ece2", duration: 0.3 }, A4 + 5.6);
 
       // ---- S5: ARAÇLAR (23.0 – 29.0)
       var A5 = T4 + 0.3;
-      breathe("#s5-glow", T4, 6);
+      breathe("#s5-glow", T4, 10.2);
       tl.fromTo("#s5-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A5);
       tl.fromTo("#s5-h", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, A5);
       tl.fromTo("#s5-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, A5 + 0.3);
       tl.fromTo("#s5-term", { opacity: 0, x: 120, rotationY: -18, transformPerspective: 1600 }, { opacity: 1, x: 0, rotationY: 0, duration: 0.9, ease: "expo.out" }, A5 + 0.1);
       tl.fromTo("#s5-chips .tchip", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "back.out(2)" }, A5 + 0.6);
-      var TT = [A5 + 0.9, A5 + 1.6, A5 + 3.6, A5 + 4.6];
+      var TT = [A5 + 1.2, A5 + 2.4, A5 + 5.0, A5 + 6.4];
       ["#t1", "#t2", "#t3", "#t4"].forEach(function (s, k) { tl.fromTo(s, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, TT[k]); });
       [["#c-w", TT[0]], ["#c-b", TT[1]], ["#c-r", TT[2]]].forEach(function (c) {
         tl.fromTo(c[0], { borderColor: "#3a302a", backgroundColor: "#1c1714" }, { borderColor: "#d97757", backgroundColor: "#3b2419", duration: 0.25 }, c[1]);
@@ -429,14 +429,14 @@
       });
       tl.fromTo("#s5-prog", { opacity: 0 }, { opacity: 1, duration: 0.2 }, TT[1] + 0.2);
       tl.fromTo("#s5-pct", { opacity: 0 }, { opacity: 1, duration: 0.2 }, TT[1] + 0.2);
-      tl.fromTo("#s5-fill", { scaleX: 0 }, { scaleX: 1, duration: 1.6, ease: "power1.inOut" }, TT[1] + 0.3);
-      count(document.getElementById("s5-pct"), 0, 100, TT[1] + 0.3, 1.6, 0, "%");
+      tl.fromTo("#s5-fill", { scaleX: 0 }, { scaleX: 1, duration: 2.2, ease: "power1.inOut" }, TT[1] + 0.3);
+      count(document.getElementById("s5-pct"), 0, 100, TT[1] + 0.3, 2.2, 0, "%");
       tl.fromTo("#s5-thumb", { opacity: 0, scale: 0.6, transformOrigin: "0% 0%" }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)" }, TT[2] + 0.2);
       tl.fromTo("#s5-thumb", { borderColor: "#d97757" }, { borderColor: "#8fbf8a", duration: 0.3 }, TT[3]);
 
       // ---- S6: CEVAP (29.0 – 36.0)
       var A6 = T5 + 0.5;
-      breathe("#s6-glow", T5, 7);
+      breathe("#s6-glow", T5, 11.2);
       tl.fromTo("#s6-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, A6);
       tl.fromTo("#s6-h", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, A6);
       function candRound(id, at) {
@@ -447,15 +447,15 @@
         });
         tl.fromTo(id + " .win", { x: 0 }, { x: 24, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, at + 1.1);
       }
-      candRound("#cand1", A6 + 0.4);
-      tl.fromTo("#s6-ans .w1", { opacity: 0, y: 80, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, A6 + 1.6);
-      tl.to("#cand1", { opacity: 0, y: -20, duration: 0.3 }, A6 + 1.9);
-      candRound("#cand2", A6 + 2.15);
-      tl.fromTo("#s6-ans .w2", { opacity: 0, y: 80, scale: 1.3, filter: "blur(14px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, A6 + 3.35);
-      tl.to("#cand2", { opacity: 0, y: -20, duration: 0.3 }, A6 + 3.6);
-      tl.fromTo("#s6-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut" }, A6 + 3.7);
-      tl.fromTo("#s6-ans", { scale: 1, transformOrigin: "0% 50%" }, { scale: 1.06, duration: 2.6, ease: "sine.out" }, A6 + 3.7);
-      tl.fromTo("#s6-sig", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, A6 + 4.1);
+      candRound("#cand1", A6 + 0.6);
+      tl.fromTo("#s6-ans .w1", { opacity: 0, y: 80, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, A6 + 2.4);
+      tl.to("#cand1", { opacity: 0, y: -20, duration: 0.3 }, A6 + 2.8);
+      candRound("#cand2", A6 + 3.2);
+      tl.fromTo("#s6-ans .w2", { opacity: 0, y: 80, scale: 1.3, filter: "blur(14px)" }, { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, A6 + 5.0);
+      tl.to("#cand2", { opacity: 0, y: -20, duration: 0.3 }, A6 + 5.4);
+      tl.fromTo("#s6-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.inOut" }, A6 + 5.6);
+      tl.fromTo("#s6-ans", { scale: 1, transformOrigin: "0% 50%" }, { scale: 1.06, duration: 4.0, ease: "sine.out" }, A6 + 5.6);
+      tl.fromTo("#s6-sig", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, A6 + 6.2);
       tl.fromTo("#blackout", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power1.in" }, END - 0.85);
 
       window.__timelines["main"] = tl;

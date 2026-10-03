@@ -6,7 +6,7 @@ message: "Claude bir soruyu parçalara ayırır, parçaların birbirine bakması
 destination: youtube
 aspect: 1920x1080
 language: tr
-length: 36s
+length: 60s
 angle: concept
 ---
 
